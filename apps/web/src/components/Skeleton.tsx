@@ -6,22 +6,21 @@ interface SkeletonProps {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
-      <div className="h-48 w-full animate-pulse bg-white/10" />
-
-      <div className="p-4 space-y-3">
-        <div className="h-5 w-2/3 animate-pulse rounded bg-white/10" />
-        <div className="h-4 w-1/3 animate-pulse rounded bg-white/10" />
-
+    <div className="vehicle-card overflow-hidden">
+      <div className="vehicle-image skeleton aspect-[4/3] w-full" />
+      <div className="vehicle-info space-y-3 skeleton">
+        <div className="h-5 w-2/3 rounded" />
+        <div className="h-4 w-1/3 rounded" />
+        <div className="h-4 w-full rounded" />
+        <div className="h-4 w-3/4 rounded" />
         <div className="flex gap-2 pt-2">
-          <div className="h-6 w-16 animate-pulse rounded-full bg-white/10" />
-          <div className="h-6 w-20 animate-pulse rounded-full bg-white/10" />
-          <div className="h-6 w-14 animate-pulse rounded-full bg-white/10" />
+          <div className="h-6 w-16 rounded-full" />
+          <div className="h-6 w-20 rounded-full" />
+          <div className="h-6 w-14 rounded-full" />
         </div>
-
         <div className="flex items-center justify-between pt-2">
-          <div className="h-6 w-24 animate-pulse rounded bg-white/10" />
-          <div className="h-8 w-20 animate-pulse rounded-lg bg-white/10" />
+          <div className="h-6 w-24 rounded" />
+          <div className="h-8 w-20 rounded-lg" />
         </div>
       </div>
     </div>

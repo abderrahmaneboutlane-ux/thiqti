@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { X } from "lucide-react";
 
-type ToastType = "success" | "error" | "info";
+type ToastType = "success" | "error" | "info" | "warning";
 
 interface Toast {
   id: number;
@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed right-4 top-4 z-[100] flex flex-col gap-2">
+      <div className="fixed bottom-6 right-6 z-60 flex flex-col gap-2 w-full max-w-sm" style={{ bottom: "max(1.5rem, env(safe-area-inset-bottom, 1.5rem))", right: "max(1.5rem, env(safe-area-inset-right, 1.5rem))" }}>
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
         ))}
@@ -53,19 +53,19 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const colors = {
-    success: "border-green-500/30 bg-green-500/10 text-green-300",
-    error: "border-red-500/30 bg-red-500/10 text-red-300",
-    info: "border-blue-500/30 bg-blue-500/10 text-blue-300",
+  const typeClasses = {
+    success: "toast-success",
+    error: "toast-error",
+    warning: "toast-warning",
+    info: "toast-info",
   };
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg backdrop-blur-md ${colors[toast.type]}`}
-      style={{ animation: "fade-in 0.3s ease-out" }}
+      className={`toast ${typeClasses[toast.type]} animate-slide-in-right`}
     >
-      <span>{toast.message}</span>
-      <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100">
+      <span className="flex-1">{toast.message}</span>
+      <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100 transition-opacity">
         <X className="h-4 w-4" />
       </button>
     </div>

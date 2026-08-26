@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparer - Thiqti V2</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'><rect width='28' height='28' rx='8' fill='%230066FF'/><path d='M7 14L14 7l7 7-7 7z' fill='white' opacity='.9'/></svg>">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <svg width="32" height="32" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#ng)"/><defs><linearGradient id="ng" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#0066FF"/><stop offset="1" stop-color="#00D4FF"/></linearGradient></defs><path d="M7 14L14 7l7 7-7 7z" fill="#fff" opacity=".9"/></svg>
+    Thiqti
+  </a>
+  <div class="nav-actions">
+    <a href="results.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Explorer
+    </a>
+    <a href="compare.html" class="nav-link" style="color:var(--pri)">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+      Comparer
+    </a>
+    <a href="favorites.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      Favoris
+    </a>
+  </div>
+</nav>
+
+<div class="container" style="padding-top:24px;padding-bottom:40px">
+  <div class="cmp anim-up" style="margin-bottom:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <h2>Comparer les véhicules</h2>
+      <button class="btn btn-s btn-sm" onclick="addVehicle()">+ Ajouter un véhicule</button>
+    </div>
+    <p>3 véhicules sélectionnés pour la comparaison</p>
+  </div>
+
+  <!-- Vehicle Cards Row -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;margin-top:20px">
+
+    <!-- Vehicle 1 -->
+    <div class="card anim-up anim-delay-1" style="position:relative">
+      <button class="card-fav" onclick="this.closest('.card').style.display='none'" title="Retirer">&#10005;</button>
+      <div class="card-img" style="height:140px">
+        <svg viewBox="0 0 400 140"><defs><linearGradient id="cg1" x1="0" y1="0" x2="400" y2="140"><stop offset="0" stop-color="#0F172A"/><stop offset="1" stop-color="#1E293B"/></linearGradient></defs><rect width="400" height="140" fill="url(#cg1)"/><g transform="translate(100,15)" opacity=".15"><path d="M20,80L40,45l30-18 60-8 70 0 25 12 18 16 10 0 8 8v8l8 0 8 4v8H30V90z" fill="#0066FF"/><circle cx="80" cy="90" r="16" fill="#0066FF"/><circle cx="240" cy="90" r="16" fill="#0066FF"/></g><text x="200" y="110" text-anchor="middle" font-family="Inter" font-size="14" font-weight="900" fill="#F8FAFC">Toyota RAV4 Hybrid</text><text x="200" y="128" text-anchor="middle" font-family="Inter" font-size="10" fill="#94A3B8">Comfort CVT - 2026</text></svg>
+      </div>
+      <div class="card-body" style="padding:14px">
+        <div class="card-title" style="font-size:.9375rem">Toyota RAV4 Hybrid</div>
+        <div class="card-sub" style="font-size:.75rem;margin-bottom:8px">Comfort CVT - 2026</div>
+        <div class="price-row" style="margin-bottom:6px">
+          <span class="price" style="font-size:1rem">349 900 DH</span>
+          <div class="score">
+            <div class="gauge" style="width:32px;height:32px"><svg viewBox="0 0 44 44"><circle class="gauge-bg" cx="22" cy="22" r="17"/><circle class="gauge-fill" cx="22" cy="22" r="17" stroke="#10B981" stroke-dasharray="107" stroke-dashoffset="19" transform="rotate(-90 22 22)"/></svg></div>
+            <span class="score-val" style="font-size:.875rem">8.2</span>
+          </div>
+        </div>
+        <div class="card-meta" style="margin-bottom:0"><span class="tag tag-b chip-sm">Hybride</span><span class="tag tag-b chip-sm">Auto</span><span class="tag tag-b chip-sm">SUV</span></div>
+      </div>
+    </div>
+
+    <!-- Vehicle 2 -->
+    <div class="card anim-up anim-delay-2" style="position:relative">
+      <button class="card-fav" onclick="this.closest('.card').style.display='none'" title="Retirer">&#10005;</button>
+      <div class="card-img" style="height:140px">
+        <svg viewBox="0 0 400 140"><defs><linearGradient id="cg2" x1="0" y1="0" x2="400" y2="140"><stop offset="0" stop-color="#0F172A"/><stop offset="1" stop-color="#1E293B"/></linearGradient></defs><rect width="400" height="140" fill="url(#cg2)"/><g transform="translate(100,15)" opacity=".15"><path d="M20,80L40,45l30-18 60-8 70 0 25 12 18 16 10 0 8 8v8l8 0 8 4v8H30V90z" fill="#64748B"/><circle cx="80" cy="90" r="16" fill="#64748B"/><circle cx="240" cy="90" r="16" fill="#64748B"/></g><text x="200" y="110" text-anchor="middle" font-family="Inter" font-size="14" font-weight="900" fill="#F8FAFC">Hyundai Tucson Hybrid</text><text x="200" y="128" text-anchor="middle" font-family="Inter" font-size="10" fill="#94A3B8">Confort AT6 - 2026</text></svg>
+      </div>
+      <div class="card-body" style="padding:14px">
+        <div class="card-title" style="font-size:.9375rem">Hyundai Tucson Hybrid</div>
+        <div class="card-sub" style="font-size:.75rem;margin-bottom:8px">Confort AT6 - 2026</div>
+        <div class="price-row" style="margin-bottom:6px">
+          <span class="price" style="font-size:1rem">359 000 DH</span>
+          <div class="score">
+            <div class="gauge" style="width:32px;height:32px"><svg viewBox="0 0 44 44"><circle class="gauge-bg" cx="22" cy="22" r="17"/><circle class="gauge-fill" cx="22" cy="22" r="17" stroke="#10B981" stroke-dasharray="107" stroke-dashoffset="24" transform="rotate(-90 22 22)"/></svg></div>
+            <span class="score-val" style="font-size:.875rem">7.8</span>
+          </div>
+        </div>
+        <div class="card-meta" style="margin-bottom:0"><span class="tag tag-b chip-sm">Hybride</span><span class="tag tag-b chip-sm">Auto</span><span class="tag tag-b chip-sm">SUV</span></div>
+      </div>
+    </div>
+
+    <!-- Vehicle 3 -->
+    <div class="card anim-up anim-delay-3" style="position:relative">
+      <button class="card-fav" onclick="this.closest('.card').style.display='none'" title="Retirer">&#10005;</button>
+      <div class="card-img" style="height:140px">
+        <svg viewBox="0 0 400 140"><defs><linearGradient id="cg3" x1="0" y1="0" x2="400" y2="140"><stop offset="0" stop-color="#0F172A"/><stop offset="1" stop-color="#1E293B"/></linearGradient></defs><rect width="400" height="140" fill="url(#cg3)"/><g transform="translate(100,15)" opacity=".15"><path d="M20,80L40,45l30-18 60-8 70 0 25 12 18 16 10 0 8 8v8l8 0 8 4v8H30V90z" fill="#10B981"/><circle cx="80" cy="90" r="16" fill="#10B981"/><circle cx="240" cy="90" r="16" fill="#10B981"/></g><text x="200" y="110" text-anchor="middle" font-family="Inter" font-size="14" font-weight="900" fill="#F8FAFC">Nissan Qashqai e-Power</text><text x="200" y="128" text-anchor="middle" font-family="Inter" font-size="10" fill="#94A3B8">Tekna CVT - 2026</text></svg>
+      </div>
+      <div class="card-body" style="padding:14px">
+        <div class="card-title" style="font-size:.9375rem">Nissan Qashqai e-Power</div>
+        <div class="card-sub" style="font-size:.75rem;margin-bottom:8px">Tekna CVT - 2026</div>
+        <div class="price-row" style="margin-bottom:6px">
+          <span class="price" style="font-size:1rem">339 000 DH</span>
+          <div class="score">
+            <div class="gauge" style="width:32px;height:32px"><svg viewBox="0 0 44 44"><circle class="gauge-bg" cx="22" cy="22" r="17"/><circle class="gauge-fill" cx="22" cy="22" r="17" stroke="#10B981" stroke-dasharray="107" stroke-dashoffset="21" transform="rotate(-90 22 22)"/></svg></div>
+            <span class="score-val" style="font-size:.875rem">8.0</span>
+          </div>
+        </div>
+        <div class="card-meta" style="margin-bottom:0"><span class="tag tag-b chip-sm">Hybride</span><span class="tag tag-b chip-sm">Auto</span><span class="tag tag-b chip-sm">SUV</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="cmp anim-up anim-delay-2" style="margin-bottom:0">
+    <table class="cmp-tbl">
+      <thead>
+        <tr>
+          <th style="width:160px">Caractéristique</th>
+          <th class="c-hd"><strong>Toyota RAV4</strong><span>Hybrid Comfort CVT</span></th>
+          <th class="c-hd"><strong>Hyundai Tucson</strong><span>Hybrid Confort AT6</span></th>
+          <th class="c-hd"><strong>Nissan Qashqai</strong><span>e-Power Tekna CVT</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="grp"><td colspan="4">Moteur & Performance</td></tr>
+        <tr>
+          <td class="rl">Puissance</td>
+          <td class="win">218 ch</td>
+          <td>186 ch</td>
+          <td>190 ch</td>
+        </tr>
+        <tr>
+          <td class="rl">0-100 km/h</td>
+          <td>8.1 s</td>
+          <td>8.8 s</td>
+          <td class="win">7.9 s</td>
+        </tr>
+        <tr class="grp"><td colspan="4">Économie</td></tr>
+        <tr>
+          <td class="rl">Consommation</td>
+          <td class="win">4.8 L/100km</td>
+          <td>5.2 L/100km</td>
+          <td>5.0 L/100km</td>
+        </tr>
+        <tr>
+          <td class="rl">Prix</td>
+          <td>349 900 DH</td>
+          <td>359 000 DH</td>
+          <td class="win">339 000 DH</td>
+        </tr>
+        <tr class="grp"><td colspan="4">Praticité</td></tr>
+        <tr>
+          <td class="rl">Coffre</td>
+          <td class="win">580 L</td>
+          <td>520 L</td>
+          <td>504 L</td>
+        </tr>
+        <tr>
+          <td class="rl">Places</td>
+          <td>5</td>
+          <td>5</td>
+          <td>5</td>
+        </tr>
+        <tr class="grp"><td colspan="4">Après-vente</td></tr>
+        <tr>
+          <td class="rl">Garantie</td>
+          <td>5 ans / 100 000 km</td>
+          <td class="win">7 ans / 150 000 km</td>
+          <td>5 ans / 100 000 km</td>
+        </tr>
+        <tr>
+          <td class="rl">Score réputation</td>
+          <td class="win">8.2 / 10</td>
+          <td>7.8 / 10</td>
+          <td>8.0 / 10</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="cmp-sum">
+      <strong>Résumé :</strong> Le <strong>Toyota RAV4</strong> domine en puissance, coffre et réputation. Le <strong>Nissan Qashqai</strong> est le moins cher et le plus rapide. Le <strong>Hyundai Tucson</strong> offre la meilleure garantie.
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p><b>Thiqti V2</b> - Volund Ventures SARL</p>
+    <div class="footer-links"><a href="index.html">Accueil</a><a href="results.html">Rechercher</a><a href="favorites.html">Favoris</a></div>
+  </div>
+</footer>
+
+<script>
+function addVehicle() {
+  alert('Fonctionnalité d\'ajout de véhicule - bientôt disponible');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thiqti Assistant - Votre conseiller auto IA</title>
+<link rel="stylesheet" href="styles.css?v=5">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'><rect width='28' height='28' rx='8' fill='%230284C7'/><path d='M7 14L14 7l7 7-7 7z' fill='white' opacity='.9'/></svg>">
+</head>
+<body class="ast-page">
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <svg width="32" height="32" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#navGrad)"/><defs><linearGradient id="navGrad" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#0284C7"/><stop offset="1" stop-color="#0369A1"/></linearGradient></defs><path d="M7 14L14 7l7 7-7 7z" fill="#fff" opacity=".9"/></svg>
+    Thiqti
+  </a>
+  <div class="nav-actions">
+    <a href="results.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Explorer
+    </a>
+    <a href="assistant.html" class="nav-link active">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+      Assistant
+    </a>
+    <a href="compare.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+      Comparer
+    </a>
+    <a href="favorites.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      Favoris
+    </a>
+  </div>
+</nav>
+
+<div class="ast-wrap">
+  <div class="ast-head">
+    <div class="ast-avatar">
+      <svg width="26" height="26" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+    </div>
+    <div class="ast-id">
+      <h1>Thiqti Assistant <span class="badge badge-g">Conseiller IA</span></h1>
+      <div class="st-line"><span class="st-dot"></span> En ligne - je reponds en quelques secondes</div>
+      <div class="ast-msg">Decrivez votre voiture ideale en langage naturel : budget, usage, carburant, confort... Je fais le reste.</div>
+    </div>
+  </div>
+
+  <div class="ast-window">
+    <div class="ast-bar">
+      <div class="av">
+        <svg width="17" height="17" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+      </div>
+      <div class="info">
+        <b>Thiqti Assistant</b>
+        <span>Votre conseiller pour trouver la voiture ideale</span>
+      </div>
+      <div class="tools">
+        <button class="btn btn-g btn-sm" onclick="resetChat()" title="Nouvelle conversation">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Nouveau
+        </button>
+        <a class="btn btn-s btn-sm" href="results.html">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Explorer
+        </a>
+      </div>
+    </div>
+
+    <div class="ast-body" id="chatBody"></div>
+
+    <div class="ast-foot">
+      <button class="ast-mic" id="micBtn" title="Recherche vocale">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0M12 17v4M8 21h8"/></svg>
+      </button>
+      <input type="text" id="chatInput" placeholder="Decrivez votre voiture ideale... Ex : SUV hybride pour la famille, 350 000 DH" autocomplete="off">
+      <button class="ast-send" onclick="sendMsg()" title="Envoyer">
+        <svg width="19" height="19" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p><b>Thiqti</b> - Plateforme IA d'achat automobile</p>
+    <p style="margin-top:4px;font-size:.8125rem">Volund Ventures SARL - VV-SLP-2026-001 - Juillet 2026</p>
+    <div class="footer-links">
+      <a href="index.html">Accueil</a>
+      <a href="results.html">Rechercher</a>
+      <a href="assistant.html">Assistant</a>
+      <a href="compare.html">Comparer</a>
+      <a href="favorites.html">Favoris</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+var CARS=[
+ {id:'rav4',name:'Toyota RAV4 Hybrid',sub:'Comfort CVT - 2026',price:'349 900 DH',old:'365 000 DH',score:'8.2',nb:'214 avis',g:'#10B981',g1:'#E0F2FE',g2:'#F0F6FF',fill:'#0284C7',desc:'Le meilleur match famille : spacieux, tres bien note en confort, dans votre budget.'},
+ {id:'tucson',name:'Hyundai Tucson Hybrid',sub:'Confort AT6 - 2026',price:'359 000 DH',score:'7.8',nb:'187 avis',g:'#10B981',g1:'#F0EDE8',g2:'#F5F0E8',fill:'#64748B',desc:'Bon compromis confort/prix, excellent score de fiabilite.'},
+ {id:'sportage',name:'Kia Sportage Hybrid',sub:'Prestige DCT - 2026',price:'369 000 DH',score:'7.1',nb:'142 avis',g:'#F59E0B',g1:'#FEF3C7',g2:'#FFFBEB',fill:'#D97706',desc:'Finition riche, bon coffre. Infodivertissement parfois lent.'},
+ {id:'qashqai',name:'Nissan Qashqai e-Power',sub:'Tekna CVT - 2026',price:'339 000 DH',score:'8.0',nb:'98 avis',g:'#10B981',g1:'#ECFDF5',g2:'#F0FDF4',fill:'#059669',desc:'Sous le budget, bonne reputation. Coffre un peu juste.'},
+ {id:'clio',name:'Renault Clio E-Tech',sub:'Intens CVT - 2026',price:'184 900 DH',score:'7.6',nb:'201 avis',g:'#10B981',g1:'#FEF2F2',g2:'#FDF6F6',fill:'#DC2626',desc:'Citadine hybride agile et economique, parfaite pour la ville.'},
+ {id:'mg4',name:'MG4 Electric',sub:'Comfort 51 kWh - 2026',price:'269 900 DH',score:'7.4',nb:'76 avis',g:'#F59E0B',g1:'#F0EDE8',g2:'#F5F0E8',fill:'#334155',desc:'100% electrique, excellent rapport autonomie/prix au Maroc.'}
+];
+function carSvg(i){var c=CARS[i];var sil='<g transform="translate(80,35)" opacity=".16" fill="'+c.fill+'"><path d="M20,90L40,50l30-20 70-10 80 0 30 15 20 20 10 0 10 10v10l10 0 10 5v10H30V100z"/><circle cx="85" cy="100" r="18"/><circle cx="265" cy="100" r="18"/></g>';return '<svg viewBox="0 0 400 200"><defs><linearGradient id="g'+i+'" x1="0" y1="0" x2="400" y2="200"><stop offset="0" stop-color="'+c.g1+'"/><stop offset="1" stop-color="'+c.g2+'"/></linearGradient></defs><rect width="400" height="200" fill="url(#g'+i+')"/>'+sil+'</svg>';}
+function el(html){var d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
+function body(){return document.getElementById('chatBody');}
+function botBubble(html){var row=el('<div class="ast-row bot"><div class="ast-avatar q-av"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg></div><div class="ast-bub">'+html+'</div></div>');body().appendChild(row);scrollDown();return row;}
+function userBubble(text){var row=el('<div class="ast-row user"><div class="ast-bub">'+text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>');body().appendChild(row);scrollDown();}
+function typing(){var t=el('<div class="ast-row bot"><div class="ast-avatar q-av"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg></div><div class="ast-bub ast-typing"><i></i><i></i><i></i></div></div>');body().appendChild(t);scrollDown();return t;}
+function scrollDown(){var b=body();b.scrollTop=b.scrollHeight;}
+function chips(items){return '<div class="ast-qs">'+items.map(function(q){return '<span class="chip" onclick="send('+JSON.stringify(q).replace(/"/g,'&quot;')+')">'+q+'</span>';}).join('')+'</div>';}
+function cards(list){return '<div class="ast-cards">'+list.map(function(i){var car=CARS[i];return '<div class="ast-card" onclick="window.location.href=\'vehicle.html\'"><div class="ci-svg">'+carSvg(i)+'</div><div class="ci-bd"><div class="ci-t">'+car.name+'</div><div class="ci-s">'+car.sub+'</div><div class="ci-p">'+car.price+'</div><div class="ci-sc"><span class="gauge" style="width:22px;height:22px"><svg viewBox="0 0 44 44"><circle class="gauge-bg" cx="22" cy="22" r="17"/><circle class="gauge-fill" cx="22" cy="22" r="17" stroke="'+car.g+'" stroke-dasharray="107" stroke-dashoffset="'+Math.round(107-(car.score/10*107))+'" transform="rotate(-90 22 22)"/></svg></span><span class="score-val" style="font-size:.75rem">'+car.score+'</span><span style="font-size:.625rem;color:#94A3B8">'+car.nb+'</span></div></div></div>';}).join('')+'</div>';}
+function answer(q){
+ q=q.toLowerCase();var out=[];
+ if(q.indexOf('suv')>-1||q.indexOf('famil')>-1||q.indexOf('7 places')>-1||q.indexOf('espace')>-1){out={text:'Pour une utilisation <b>familiale</b>, je recommande les SUV hybrides suivants : spacieux, economes et les mieux notes en confort au Maroc.',cars:['rav4','tucson','sportage'],q:'SUV familial'};}
+ else if(q.indexOf('hybride')>-1||q.indexOf('hybrid')>-1){out={text:'Les <b>hybrides</b> sont le meilleur compromis au Maroc : pas de recharge a prevoir et ~40% d\'economie en ville. Voici les meilleurs :',cars:['rav4','tucson','clio'],q:'voiture hybride'};}
+ else if(q.indexOf('citadine')>-1||q.indexOf('ville')>-1||q.indexOf('petite')>-1){out={text:'En <b>ville</b>, une citadine hybride ou une electrique est plus agile et bien moins chere. Mes recommandations :',cars:['clio','mg4'],q:'citadine'};}
+ else if(q.indexOf('electr')>-1||q.indexOf('ev')>-1){out={text:'En <b>100% electrique</b> au Maroc, regardez l\'autonomie et le reseau de recharge. Voici ma recommendation :',cars:['mg4'],q:'voiture electrique'};}
+ else if(q.indexOf('berline')>-1||q.indexOf('auto')>-1){out={text:'En <b>berline automatique</b>, confort routier et boite auto fluide. Je vous propose :',cars:['qashqai','tucson'],q:'berline automatique'};}
+ else if(q.indexOf('350')>-1||q.indexOf('300')>-1||q.indexOf('400')>-1||q.indexOf('budget')>-1||q.indexOf('prix')>-1||q.indexOf('dh')>-1){out={text:'Avec ce budget, voici les voitures qui cochent le plus de cases (note de satisfaction et fiabilite) :',cars:['rav4','qashqai','sportage'],q:'budget 350 000 DH'};}
+ else if(q.indexOf('diesel')>-1||q.indexOf('pick')>-1||q.indexOf('utilitaire')>-1){out={text:'En <b>diesel utilitaire</b>, je cherche les modeles robustes et economes en entretien. Selection :',cars:['sportage','qashqai'],q:'pick-up diesel'};}
+ else {out={text:'Voici les voitures les mieux notees par les proprietaires, qui repondent le mieux au marche marocain :',cars:['rav4','tucson','qashqai'],q:'meilleures voitures'};}
+ return out;
+}
+function reply(q,row){
+ setTimeout(function(){
+  row.remove();
+  var a=answer(q);
+  botBubble(a.text+cards(a.cars)+'<div class="ast-qs"><a class="btn btn-p btn-sm" href="results.html?q='+encodeURIComponent(a.q)+'">Voir tous les resultats</a><a class="btn btn-s btn-sm" href="compare.html">Comparer</a></div>'+chips(['Un peu plus cher','Un SUV plus sportif','Quelque chose d\'electrique','Une citadine economique']));
+ },900+Math.random()*500);
+}
+function send(text){
+ if(!text)return;
+ userBubble(text);
+ document.getElementById('chatInput').value='';
+ var t=typing();
+ reply(text,t);
+}
+function sendMsg(){send(document.getElementById('chatInput').value.trim());}
+function resetChat(){
+ document.getElementById('chatBody').innerHTML='';
+ welcome();
+}
+function welcome(){
+ botBubble('Salut 👋 Je suis <b>Thiqti</b>, votre assistant automobile.<br>Dites-moi ce que vous cherchez : budget, type de voiture, usage... et je vous propose la <b>voiture ideale</b>.');
+ botBubble('Par exemple :'+chips(['SUV hybride pour la famille, 350 000 DH','Citadine economique pour la ville','Voiture electrique','Berline automatique']));
+}
+welcome();
+document.getElementById('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter')sendMsg();});
+document.getElementById('micBtn').addEventListener('click',function(){
+ this.classList.toggle('rec');
+ if(this.classList.contains('rec')){
+  document.getElementById('chatInput').placeholder='🎤 Parlez, je vous ecoute...';
+  var t=typing();
+  setTimeout(function(){t.remove();userBubble('🎤 (votre message vocal)');reply('SUV familial confortable',t);},1400);
+ }else{document.getElementById('chatInput').placeholder='Decrivez votre voiture ideale... Ex : SUV hybride pour la famille, 350 000 DH';}
+});
+</script>
+</body>
+</html>

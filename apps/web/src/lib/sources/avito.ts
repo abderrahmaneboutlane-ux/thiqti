@@ -1,4 +1,5 @@
-import { UnifiedCar, SourceCollector, generateId, computeScore, normalizeBrand, normalizeFuel } from "./types";
+import { UnifiedCar, SourceCollector, generateId, computeScore, normalizeBrand, normalizeFuel, CarContact, CarReputation } from "./types";
+import { normalizeIntlPhone, displayPhone, telHref, whatsappHref } from "./contact";
 
 const AVITO_URLS = [
   "https://www.avito.ma/fr/maroc/voitures-%C3%A0_vendre",
@@ -17,6 +18,7 @@ interface AvitoListing {
   city: string;
   url: string;
   image: string;
+  images: string[];
 }
 
 function cleanText(t: string): string {
@@ -92,7 +94,7 @@ function parseListing(rawText: string, href: string): AvitoListing | null {
 
   const fullUrl = href.startsWith("http") ? href : `https://www.avito.ma${href}`;
 
-  return { title, year, km, transmission, fuel, price, city, url: fullUrl, image: "" };
+  return { title, year, km, transmission, fuel, price, city, url: fullUrl, image: "", images: [] };
 }
 
 async function scrapePage(url: string): Promise<AvitoListing[]> {
@@ -110,6 +112,98 @@ async function scrapePage(url: string): Promise<AvitoListing[]> {
     await page.waitForTimeout(5000);
 
     const items = await page.evaluate(() => {
+      // Try to extract image arrays from embedded JSON (best effort)
+      const imageMap: Record<string, string[]> = {};
+
+      function collectImageUrls(obj: unknown, depth: number): string[] {
+        if (depth > 6 || obj == null) return [];
+        if (typeof obj === "string") {
+          return obj.startsWith("http") && /\.(jpg|jpeg|png|webp)/i.test(obj) ? [obj] : [];
+        }
+        if (Array.isArray(obj)) {
+          const urls: string[] = [];
+          for (const item of obj) {
+            urls.push(...collectImageUrls(item, depth + 1));
+          }
+          return urls;
+        }
+        if (typeof obj === "object") {
+          const urls: string[] = [];
+          for (const val of Object.values(obj)) {
+            urls.push(...collectImageUrls(val, depth + 1));
+          }
+          return urls;
+        }
+        return [];
+      }
+
+      function extractImagesFromJson(root: unknown): Record<string, string[]> {
+        const map: Record<string, string[]> = {};
+        if (root == null || typeof root !== "object") return map;
+
+        function search(obj: unknown, depth: number): void {
+          if (depth > 8 || obj == null || typeof obj !== "object") return;
+          if (Array.isArray(obj)) {
+            for (const item of obj) search(item, depth + 1);
+            return;
+          }
+          const record = obj as Record<string, unknown>;
+          const lowerKeys = Object.keys(record).map((k) => k.toLowerCase());
+          const isImageContext = lowerKeys.some((k) =>
+            ["images", "photos", "gallery", "media"].includes(k)
+          );
+          if (isImageContext) {
+            const urls = collectImageUrls(obj, 0);
+            if (urls.length > 0) {
+              // Try to find a related URL key to use as the map key
+              for (const k of Object.keys(record)) {
+                const val = record[k];
+                if (typeof val === "string" && val.includes("/voiture")) {
+                  map[val] = urls;
+                  break;
+                }
+              }
+              // If no URL key found, store by index-like key
+              if (Object.keys(map).length === 0 || !urls.every((u) =>
+                Object.values(map).some((arr) => arr === urls)
+              )) {
+                const key = `__img_${Object.keys(map).length}`;
+                map[key] = urls;
+              }
+            }
+          }
+          // Recurse into child properties
+          for (const val of Object.values(record)) {
+            search(val, depth + 1);
+          }
+        }
+
+        search(root, 0);
+        return map;
+      }
+
+      try {
+        // Try __NEXT_DATA__
+        const nextDataEl = document.querySelector('#__NEXT_DATA__');
+        if (nextDataEl?.textContent) {
+          const parsed = JSON.parse(nextDataEl.textContent);
+          Object.assign(imageMap, extractImagesFromJson(parsed));
+        }
+      } catch { /* best effort */ }
+
+      try {
+        // Try __INITIAL_STATE__
+        const win = window as unknown as Record<string, unknown>;
+        let initialState = win.__INITIAL_STATE__;
+        if (typeof initialState === "string") {
+          initialState = JSON.parse(initialState);
+        }
+        if (initialState && typeof initialState === "object") {
+          Object.assign(imageMap, extractImagesFromJson(initialState));
+        }
+      } catch { /* best effort */ }
+
+      // Collect DOM items
       const results: { text: string; href: string; img: string }[] = [];
       const links = document.querySelectorAll('a[href*="/voitures_d_occasion/"]');
       links.forEach((link) => {
@@ -120,14 +214,35 @@ async function scrapePage(url: string): Promise<AvitoListing[]> {
         const img = imgEl?.getAttribute("src") || "";
         results.push({ text, href, img });
       });
-      return results;
+      return { items: results, imageMap };
     });
 
     const listings: AvitoListing[] = [];
-    for (const item of items) {
+    for (const item of items.items) {
       const listing = parseListing(item.text, item.href);
       if (listing) {
         listing.image = item.img;
+
+        // Try to match JSON-extracted images by URL substring
+        const fullUrl = listing.url;
+        let jsonImages: string[] = [];
+        for (const [key, imgs] of Object.entries(items.imageMap)) {
+          if (key === fullUrl || (key.startsWith("http") && fullUrl.includes(key.substring(key.indexOf("/", 8))))) {
+            jsonImages = imgs;
+            break;
+          }
+        }
+
+        // Fallback: if no URL match, try to match by listing index order
+        if (jsonImages.length === 0) {
+          const idx = items.items.indexOf(item);
+          const indexKey = `__img_${idx}`;
+          if (items.imageMap[indexKey]) {
+            jsonImages = items.imageMap[indexKey];
+          }
+        }
+
+        listing.images = jsonImages.length > 0 ? jsonImages : (item.img ? [item.img] : []);
         listings.push(listing);
       }
     }
@@ -175,6 +290,9 @@ export class AvitoCollector implements SourceCollector {
       const model = titleParts.slice(1).join(" ").replace(/\d{4}/, "").trim() || l.title;
       const fuel = l.fuel || normalizeFuel("essence");
 
+      const contact: CarContact = { url: l.url, name: "Vendeur Avito" };
+      const reputation: CarReputation = { verified: false, label: "Annonce Avito.ma" };
+
       return {
         id: generateId("avito", make, model, l.year, l.km, l.price),
         title: l.title,
@@ -194,7 +312,11 @@ export class AvitoCollector implements SourceCollector {
         url: l.url,
         score: computeScore(l.year, l.km, l.price),
         scrapedAt: new Date().toISOString(),
-        photos: l.image ? [l.image] : [],
+        photos: l.images.length > 0 ? l.images : (l.image ? [l.image] : []),
+        inventoryType: "used" as const,
+        safety: null,
+        contact,
+        reputation,
       };
     });
   }

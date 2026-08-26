@@ -1,0 +1,235 @@
+/* ============================================================
+   THIQTI — COUCHE D'EFFETS 3D (v1.0)
+   Ajoute profondeur, tilt et parallax à l'ensemble du site
+   sans toucher au design system existant (styles.css).
+   Chargée APRÈS styles.css : ces règles ont volontairement
+   la priorité sur les équivalents "plats" d'origine.
+   ============================================================ */
+
+:root{
+  --tilt-persp: 1100px;
+  --z-1: 12px;
+  --z-2: 24px;
+  --z-3: 40px;
+  --edge-blue: #002a8a;
+  --edge-purple: #3b1170;
+}
+
+/* Respecte les préférences d'accessibilité : pas de tilt/parallax animés */
+@media (prefers-reduced-motion: reduce){
+  .card, .ast-card, .hero-search-box, .hero-mesh, .hero-orb, .hero-h1-3d,
+  .btn, .chip, .bnav-item, .gauge-3d, .stat{
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ===================================================================
+   SCÈNE GLOBALE — contexte de profondeur pour les zones de contenu
+   =================================================================== */
+.hero, .results-grid, .fav-grid, .compare-wrap, .ast-sb-features,
+.ast-body, .vh-wrap, #page-compare, #page-favorites{
+  perspective: 1600px;
+}
+
+/* ===================================================================
+   CARTES VÉHICULES — tilt 3D + couches en relief (image / badge / fav)
+   =================================================================== */
+.hero-search-box, .ast-card{ position: relative; }
+.card, .ast-card{
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform .35s cubic-bezier(0.16,1,0.3,1), box-shadow .35s ease, border-color .3s ease;
+}
+.card.tilt-active, .ast-card.tilt-active{
+  transition: transform 70ms linear, box-shadow .35s ease;
+}
+.card:hover{
+  box-shadow: 0 30px 60px -18px rgba(15,23,42,.28), 0 8px 20px rgba(0,82,255,.14);
+}
+/* l'image se détache du reste de la carte (couche la plus proche) */
+.card-img{ transition: transform .45s cubic-bezier(0.16,1,0.3,1); transform: translateZ(0); }
+.card:hover .card-img{ transform: translateZ(var(--z-2)); }
+.card-img img, .car-img{ transform: translateZ(0); }
+
+/* badges & bouton favori flottent au-dessus de la carte */
+.card-badge{ transition: transform .4s cubic-bezier(0.16,1,0.3,1); }
+.card:hover .card-badge{ transform: translateZ(var(--z-3)) scale(1.04); }
+.card-fav{ transition: transform .3s cubic-bezier(0.16,1,0.3,1), color .25s; }
+.card:hover .card-fav{ transform: translateZ(var(--z-3)); }
+.card-fav:hover{ transform: translateZ(48px) scale(1.18); color: var(--accent-red); }
+
+/* prix / score se soulèvent légèrement — lisibilité + profondeur */
+.card:hover .price-row{ transform: translateZ(var(--z-1)); }
+.price-row{ transition: transform .4s cubic-bezier(0.16,1,0.3,1); }
+
+/* Carte assistant (résultats dans le chat) — même traitement, plus discret */
+.ast-card{ transition: transform .3s cubic-bezier(0.16,1,0.3,1), box-shadow .3s ease; }
+.ast-card:hover{ box-shadow: 0 22px 40px -14px rgba(15,23,42,.24); }
+
+/* ===================================================================
+   HERO — parallax de fond + relief du titre + boîte de recherche 3D
+   =================================================================== */
+.hero{ transform-style: preserve-3d; }
+.hero-mesh{
+  transition: transform .2s linear;
+  will-change: transform;
+}
+/* orbes lumineuses en profondeur, ajoutées par le JS (hero-orb) */
+.hero-orb{
+  position: absolute; border-radius: 50%; pointer-events: none;
+  filter: blur(2px);
+  opacity: .55;
+  will-change: transform;
+  transition: transform .2s linear;
+}
+.hero-orb--1{
+  width: 340px; height: 340px; left: 6%; top: 12%;
+  background: radial-gradient(circle at 35% 35%, rgba(0,82,255,.20), rgba(0,82,255,0) 70%);
+}
+.hero-orb--2{
+  width: 280px; height: 280px; right: 8%; top: 8%;
+  background: radial-gradient(circle at 35% 35%, rgba(109,40,217,.16), rgba(109,40,217,0) 70%);
+}
+.hero-orb--3{
+  width: 200px; height: 200px; right: 18%; bottom: 6%;
+  background: radial-gradient(circle at 35% 35%, rgba(0,180,216,.16), rgba(0,180,216,0) 70%);
+}
+
+.hero-inner{ transform-style: preserve-3d; }
+.hero h1{
+  transform: translateZ(var(--z-1));
+  text-shadow: 0 1px 0 rgba(255,255,255,.6), 0 18px 30px rgba(15,23,42,.06);
+}
+.hero h1 em{
+  filter: drop-shadow(0 6px 18px rgba(0,82,255,.25));
+}
+.tagline{ transform: translateZ(var(--z-1)); }
+
+.hero-search-box{
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform .4s cubic-bezier(0.16,1,0.3,1), box-shadow .4s ease;
+}
+.hero-search-box.tilt-active{ transition: transform 90ms linear, box-shadow .4s ease; }
+.hero-search-box:hover{
+  box-shadow: var(--shadow-2xl), 0 0 0 1px rgba(0,82,255,.06);
+}
+.hero-panel, .hero-search-tabs{ transform: translateZ(16px); }
+.hero-search-box .btn{ transform: translateZ(22px); }
+
+.chips{ transform-style: preserve-3d; }
+.chip{ transform: translateZ(0); }
+
+.stat{
+  transform-style: preserve-3d;
+  transition: transform .35s cubic-bezier(0.16,1,0.3,1);
+}
+.stat:hover{ transform: perspective(700px) rotateX(6deg) translateZ(10px); }
+.stat .n{ transform: translateZ(8px); display: block; }
+
+/* ===================================================================
+   BOUTONS — relief type "touche" (extrusion + enfoncement au clic)
+   =================================================================== */
+.btn{
+  transform-style: preserve-3d;
+  transition: transform .18s cubic-bezier(0.16,1,0.3,1), box-shadow .25s ease, filter .25s ease;
+}
+.btn-p{
+  box-shadow: 0 4px 14px rgba(0,82,255,.25), 0 5px 0 var(--edge-blue), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.btn-p:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px rgba(0,82,255,.32), 0 7px 0 var(--edge-blue), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.btn-p:active{
+  transform: translateY(2px);
+  box-shadow: 0 2px 8px rgba(0,82,255,.28), 0 2px 0 var(--edge-blue), inset 0 1px 0 rgba(255,255,255,.2);
+}
+.btn-ai{
+  box-shadow: 0 6px 20px rgba(109,40,217,.3), 0 5px 0 var(--edge-purple), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.btn-ai:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 10px 26px rgba(109,40,217,.4), 0 7px 0 var(--edge-purple), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.btn-ai:active{
+  transform: translateY(2px);
+  box-shadow: 0 3px 10px rgba(109,40,217,.35), 0 2px 0 var(--edge-purple), inset 0 1px 0 rgba(255,255,255,.2);
+}
+.btn-g:hover{ transform: translateY(-3px); }
+.btn-g:active{ transform: translateY(1px); }
+.btn-s{ box-shadow: var(--shadow-sm), 0 3px 0 rgba(203,213,225,.7); }
+.btn-s:hover{ transform: translateY(-2px); box-shadow: var(--shadow-md), 0 4px 0 rgba(203,213,225,.8); }
+.btn-s:active{ transform: translateY(1px); box-shadow: var(--shadow-sm), 0 1px 0 rgba(203,213,225,.7); }
+
+/* ===================================================================
+   CHIPS / FILTRES — bascule 3D (relief quand actif = "enfoncé")
+   =================================================================== */
+.chip{
+  transition: transform .22s cubic-bezier(0.16,1,0.3,1), box-shadow .25s ease, background .25s, color .25s, border-color .25s;
+}
+.chip:hover{ transform: translateY(-2px) translateZ(4px); }
+.chip.on{
+  box-shadow: inset 0 2px 5px rgba(0,82,255,.18), 0 0 0 1px rgba(0,82,255,.18);
+  transform: translateY(0);
+}
+.cdot{
+  transition: transform .25s cubic-bezier(0.34,1.56,0.64,1), box-shadow .25s;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,.15), 0 2px 4px rgba(15,23,42,.15);
+}
+.cdot:hover{ transform: translateY(-2px) scale(1.12); }
+.cdot.active{ box-shadow: inset 0 2px 3px rgba(0,0,0,.2), 0 0 0 3px rgba(0,82,255,.18), 0 3px 8px rgba(15,23,42,.2); }
+
+/* ===================================================================
+   GAUGE / SCORE — transformé en petit dôme 3D
+   =================================================================== */
+.gauge{
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.9), rgba(241,245,249,.4) 60%, rgba(203,213,225,.25) 100%);
+  box-shadow: 0 3px 8px rgba(15,23,42,.12), inset 0 1px 2px rgba(255,255,255,.8), inset 0 -2px 3px rgba(15,23,42,.06);
+  transition: transform .3s cubic-bezier(0.16,1,0.3,1);
+}
+.card:hover .gauge, .ast-card:hover .gauge{ transform: translateZ(20px) scale(1.05); }
+
+/* ===================================================================
+   NAV DU BAS — barre flottante en verre + bouton central en 3D
+   =================================================================== */
+.bottomnav{
+  transform-style: preserve-3d;
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(15,23,42,.03);
+}
+.bnav-item{ transition: transform .3s cubic-bezier(0.34,1.56,0.64,1), color .3s, background .3s; }
+.bnav-item.active:not(.bnav-center){ transform: translateZ(10px); }
+.bnav-icon-center{
+  box-shadow: 0 2px 4px rgba(15,23,42,.06), inset 0 2px 3px rgba(255,255,255,.9), inset 0 -3px 5px rgba(15,23,42,.05);
+}
+.bnav-center.active .bnav-icon-center{
+  box-shadow: 0 8px 18px rgba(0,82,255,.35), 0 4px 0 var(--edge-blue), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.bnav-ring{ box-shadow: 0 6px 18px rgba(0,82,255,.35), 0 3px 0 var(--edge-blue); }
+
+/* ===================================================================
+   PANNEAUX (sidebar filtres, sidebar assistant, panneau comparateur)
+   =================================================================== */
+.sidebar, .ast-sidebar, .compare-panel, .vh-gallery, .ast-sb-feat{
+  transition: transform .3s cubic-bezier(0.16,1,0.3,1), box-shadow .3s ease;
+}
+.ast-sb-feat:hover{ transform: translateX(3px) translateZ(6px); box-shadow: var(--shadow-md); }
+
+/* ===================================================================
+   MICRO-INTERACTION — halo qui suit le curseur sur cartes/tuiles
+   (élément injecté par le JS : <span class="tilt-glare">)
+   =================================================================== */
+.tilt-glare{
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.35), rgba(255,255,255,0) 55%);
+  opacity: 0; transition: opacity .25s ease;
+}
+.tilt-active .tilt-glare{ opacity: 1; }
+
+@media (max-width: 900px){
+  /* Le tilt suit la souris : sur mobile/tactile on garde juste le relief statique */
+  .card:hover, .ast-card:hover{ box-shadow: var(--shadow-card-hover); }
+}

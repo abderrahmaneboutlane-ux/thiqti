@@ -1,78 +1,11 @@
 import { UnifiedCar, generateId, computeScore } from "./types";
 
-const CDN = "https://s1.cdn.autoevolution.com/images-webp/models";
+// Autoevolution CDN is broken (hotlink protection returns empty body)
+// All fallback cars use CarIllustration SVG instead
 
-const MODEL_MAP: Record<string, string> = {
-  "Dacia_Sandero": "DACIA_Sandero",
-  "Dacia_Logan": "DACIA_Logan",
-  "Dacia_Duster": "DACIA_Duster",
-  "Dacia_Jogger": "DACIA_Jogger",
-  "Renault_Clio": "RENAULT_Clio",
-  "Renault_Megane": "RENAULT_Megane",
-  "Renault_Austral": "RENAULT_Austral",
-  "Renault_Kardian": "RENAULT_Kardian",
-  "Renault_Duster": "RENAULT_Duster",
-  "Renault_Symbol": "RENAULT_Symbol",
-  "Peugeot_208": "PEUGEOT_208",
-  "Peugeot_2008": "PEUGEOT_2008",
-  "Peugeot_3008": "PEUGEOT_3008",
-  "Peugeot_308": "PEUGEOT_308",
-  "Peugeot_206": "PEUGEOT_206",
-  "Toyota_Yaris": "TOYOTA_Yaris",
-  "Toyota_Yaris Cross": "TOYOTA_Yaris_Cross",
-  "Toyota_Corolla": "TOYOTA_Corolla",
-  "Toyota_RAV4": "TOYOTA_RAV4",
-  "Toyota_C-HR": "TOYOTA_C-HR",
-  "Hyundai_Tucson": "HYUNDAI_Tucson",
-  "Hyundai_i20": "HYUNDAI_i20",
-  "Hyundai_Kona": "HYUNDAI_Kona",
-  "Hyundai_Bayon": "HYUNDAI_Bayon",
-  "Hyundai_i10": "HYUNDAI_i10",
-  "Kia_Sportage": "KIA_Sportage",
-  "Kia_Niro": "KIA_Niro",
-  "Kia_Picanto": "KIA_Picanto",
-  "Kia_Stonic": "KIA_Stonic",
-  "Volkswagen_Golf": "VOLKSWAGEN_Golf",
-  "Volkswagen_T-Roc": "VOLKSWAGEN_T-Roc",
-  "Volkswagen_Tiguan": "VOLKSWAGEN_Tiguan",
-  "Volkswagen_Polo": "VOLKSWAGEN_Polo",
-  "BMW_Série 1": "BMW_Serie-1",
-  "BMW_X1": "BMW_X1",
-  "BMW_X3": "BMW_X3",
-  "Mercedes_Classe A": "MERCEDES_Classe-A",
-  "Mercedes_GLA": "MERCEDES_GLA",
-  "BYD_Seal U": "BYD_Seal-U",
-  "BYD_ATTO 3": "BYD_ATTO-3",
-  "MG_HS": "MG_HS",
-  "MG_ZS EV": "MG_ZS-EV",
-  "Ford_Kuga": "FORD_Kuga",
-  "Ford_Fiesta": "FORD_Fiesta",
-  "Nissan_Qashqai": "NISSAN_Qashqai",
-  "Nissan_Juke": "NISSAN_Juke",
-  "Fiat_Tipo": "FIAT_Tipo",
-  "Fiat_500": "FIAT_500",
-  "Citroën_C3": "CITROEN_C3",
-  "Citroën_C5 Aircross": "CITROEN_C5-Aircross",
-  "Opel_Corsa": "OPEL_Corsa",
-  "Opel_Grandland": "OPEL_Grandland",
-  "Jeep_Renegade": "JEEP_Renegade",
-  "Škoda_Octavia": "SKODA_Octavia",
-  "Seat_Leon": "SEAT_Leon",
-  "Seat_Ibiza": "SEAT_Ibiza",
-  "Suzuki_Vitara": "SUZUKI_Vitara",
-  "Volvo_XC40": "VOLVO_XC40",
-  "DFSK_E5": "DFSK_E5",
-  "Mazda_CX-30": "MAZDA_CX-30",
-};
+type FallbackCar = Omit<UnifiedCar, "id" | "scrapedAt" | "score" | "inventoryType" | "safety">;
 
-function img(make: string, model: string, year: number): string {
-  const key = `${make}_${model}`;
-  const mapped = MODEL_MAP[key];
-  if (!mapped) return "";
-  return `${CDN}/${mapped}-${year}_main.jpg.webp`;
-}
-
-const MOROCCAN_CARS: Omit<UnifiedCar, "id" | "scrapedAt" | "score">[] = [
+const MOROCCAN_CARS: FallbackCar[] = [
   // Dacia - Le leader marocain
   { title: "Dacia Sandero Access 2024", make: "Dacia", model: "Sandero", year: 2024, price: 149000, priceFormatted: "149 000 DH", km: 5000, fuel: "Essence", transmission: "Manuelle", bodyType: "Citadine", city: "Casablanca", image: "", source: "Données Maroc", sourceUrl: "#", url: "#", photos: [] },
   { title: "Dacia Sandero Stepway 2023", make: "Dacia", model: "Sandero", year: 2023, price: 165000, priceFormatted: "165 000 DH", km: 15000, fuel: "Essence", transmission: "Manuelle", bodyType: "Crossover", city: "Rabat", image: "", source: "Données Maroc", sourceUrl: "#", url: "#", photos: [] },
@@ -196,11 +129,16 @@ const MOROCCAN_CARS: Omit<UnifiedCar, "id" | "scrapedAt" | "score">[] = [
 ];
 
 export function getFallbackCars(): UnifiedCar[] {
-  return MOROCCAN_CARS.map((car) => ({
-    ...car,
-    image: car.image || img(car.make, car.model, car.year),
-    id: generateId("fallback", car.make, car.model, car.year, car.km, car.price),
-    score: computeScore(car.year, car.km, car.price),
-    scrapedAt: new Date().toISOString(),
-  }));
+  return MOROCCAN_CARS.map((car) => {
+    return {
+      ...car,
+      image: "",
+      id: generateId("fallback", car.make, car.model, car.year, car.km, car.price),
+      score: computeScore(car.year, car.km, car.price),
+      scrapedAt: new Date().toISOString(),
+      photos: [],
+      inventoryType: "used" as const,
+      safety: null,
+    };
+  });
 }

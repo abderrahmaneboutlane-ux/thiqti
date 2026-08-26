@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Favoris - Thiqti V2</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'><rect width='28' height='28' rx='8' fill='%230066FF'/><path d='M7 14L14 7l7 7-7 7z' fill='white' opacity='.9'/></svg>">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <svg width="32" height="32" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#ng)"/><defs><linearGradient id="ng" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#0066FF"/><stop offset="1" stop-color="#00D4FF"/></linearGradient></defs><path d="M7 14L14 7l7 7-7 7z" fill="#fff" opacity=".9"/></svg>
+    Thiqti
+  </a>
+  <div class="nav-actions">
+    <a href="results.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Explorer
+    </a>
+    <a href="compare.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+      Comparer
+    </a>
+    <a href="favorites.html" class="nav-link" style="color:var(--pri)">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      Favoris
+    </a>
+  </div>
+</nav>
+
+<div class="container" style="padding-top:24px;padding-bottom:40px">
+  <div class="anim-up" style="margin-bottom:20px">
+    <h2 style="font-size:1.5rem;font-weight:900;letter-spacing:-.5px;margin-bottom:4px">Mes favoris</h2>
+    <p style="font-size:.875rem;color:var(--tx2)">2 véhicules enregistrés</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px" id="favGrid">
+
+    <!-- Favorite 1 -->
+    <div class="card anim-up anim-delay-1" id="fav-1" style="display:grid;grid-template-columns:200px 1fr;overflow:hidden">
+      <div class="card-img" style="height:100%;min-height:180px">
+        <svg viewBox="0 0 200 180"><defs><linearGradient id="fg1" x1="0" y1="0" x2="200" y2="180"><stop offset="0" stop-color="#0F172A"/><stop offset="1" stop-color="#1E293B"/></linearGradient></defs><rect width="200" height="180" fill="url(#fg1)"/><g transform="translate(20,20)" opacity=".15"><path d="M15,80L35,40l25-15 55-8 65 0 22 10 16 14 8 0 8 8v8l8 0 6 3v7H25V88z" fill="#0066FF"/><circle cx="75" cy="88" r="14" fill="#0066FF"/><circle cx="220" cy="88" r="14" fill="#0066FF"/></g><text x="100" y="145" text-anchor="middle" font-family="Inter" font-size="12" font-weight="900" fill="#F8FAFC">RAV4 Hybrid</text><text x="100" y="162" text-anchor="middle" font-family="Inter" font-size="9" fill="#94A3B8">2026</text></svg>
+      </div>
+      <div class="card-body" style="padding:14px;display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <div class="card-title" style="font-size:.9375rem">Toyota RAV4 Hybrid</div>
+          <div class="card-sub" style="font-size:.75rem;margin-bottom:6px">Comfort CVT - 2026</div>
+          <div class="price-row" style="margin-bottom:6px">
+            <span class="price" style="font-size:1rem">349 900 DH</span>
+            <div class="score">
+              <div class="gauge" style="width:32px;height:32px"><svg viewBox="0 0 44 44"><circle class="gauge-bg" cx="22" cy="22" r="17"/><circle class="gauge-fill" cx="22" cy="22" r="17" stroke="#10B981" stroke-dasharray="107" stroke-dashoffset="19" transform="rotate(-90 22 22)"/></svg></div>
+              <span class="score-val" style="font-size:.875rem">8.2</span>
+            </div>
+          </div>
+          <div class="card-meta" style="margin-bottom:0"><span class="tag tag-b chip-sm">Hybride</span><span class="tag tag-b chip-sm">Auto</span><span class="tag tag-b chip-sm">SUV</span></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-s btn-sm" onclick="removeFav(1)" style="flex:1">Retirer</button>
+          <a href="vehicle.html" class="btn btn-p btn-sm" style="flex:1">Voir la fiche</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Favorite 2 -->
+    <div class="card anim-up anim-delay-2" id="fav-2" style="display:grid;grid-template-columns:200px 1fr;overflow:hidden">
+      <div class="card-img" style="height:100%;min-height:180px">
+        <svg viewBox="0 0 200 180"><defs><linearGradient id="fg2" x1="0" y1="0" x2="200" y2="180"><stop offset="0" stop-color="#0F172A"/><stop offset="1" stop-color="#1E293B"/></linearGradient></defs><rect width="200" height="180" fill="url(#fg2)"/><g transform="translate(20,20)" opacity=".15"><path d="M15,80L35,40l25-15 55-8 65 0 22 10 16 14 8 0 8 8v8l8 0 6 3v7H25V88z" fill="#64748B"/><circle cx="75" cy="88" r="14" fill="#64748B"/><circle cx="220" cy="88" r="14" fill="#64748B"/></g><text x="100" y="145" text-anchor="middle" font-family="Inter" font-size="12" font-weight="900" fill="#F8FAFC">Tucson Hybrid</text><text x="100" y="162" text-anchor="middle" font-family="Inter" font-size="9" fill="#94A3B8">2026</text></svg>
+      </div>
+      <div class="card-body" style="padding:14px;display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <div class="card-title" style="font-size:.9375rem">Hyundai Tucson Hybrid</div>
+          <div class="card-sub" style="font-size:.75rem;margin-bottom:6px">Confort AT6 - 2026</div>
+          <div class="price-row" style="margin-bottom:6px">
+            <span class="price" style="font-size:1rem">359 000 DH</span>
+            <div class="score">
+              <div class="gauge" style="width:32px;height:32px"><svg viewBox="0 0 44 44"><circle class="gauge-bg" cx="22" cy="22" r="17"/><circle class="gauge-fill" cx="22" cy="22" r="17" stroke="#10B981" stroke-dasharray="107" stroke-dashoffset="24" transform="rotate(-90 22 22)"/></svg></div>
+              <span class="score-val" style="font-size:.875rem">7.8</span>
+            </div>
+          </div>
+          <div class="card-meta" style="margin-bottom:0"><span class="tag tag-b chip-sm">Hybride</span><span class="tag tag-b chip-sm">Auto</span><span class="tag tag-b chip-sm">SUV</span></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-s btn-sm" onclick="removeFav(2)" style="flex:1">Retirer</button>
+          <a href="vehicle.html" class="btn btn-p btn-sm" style="flex:1">Voir la fiche</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Empty state -->
+  <div id="emptyState" style="display:none;text-align:center;padding:60px 20px">
+    <div style="font-size:3rem;margin-bottom:16px;opacity:.3">&#9825;</div>
+    <h3 style="font-size:1.125rem;font-weight:800;color:var(--tx2);margin-bottom:6px">Aucun favori pour le moment</h3>
+    <p style="font-size:.875rem;color:var(--tx3);margin-bottom:16px">Ajoutez des véhicules à vos favoris pour les retrouver facilement.</p>
+    <a href="results.html" class="btn btn-p">Explorer les véhicules</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p><b>Thiqti V2</b> - Volund Ventures SARL</p>
+    <div class="footer-links"><a href="index.html">Accueil</a><a href="results.html">Rechercher</a><a href="compare.html">Comparer</a></div>
+  </div>
+</footer>
+
+<script>
+function removeFav(id) {
+  const card = document.getElementById('fav-' + id);
+  if (card) {
+    card.style.transition = 'opacity .3s, transform .3s';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      card.remove();
+      checkEmpty();
+    }, 300);
+  }
+}
+
+function checkEmpty() {
+  const grid = document.getElementById('favGrid');
+  const cards = grid.querySelectorAll('.card');
+  if (cards.length === 0) {
+    document.getElementById('emptyState').style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>

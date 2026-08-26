@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thiqti V2 - Assistant Automobile IA</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'><rect width='28' height='28' rx='8' fill='%230066FF'/><path d='M7 14L14 7l7 7-7 7z' fill='white' opacity='.9'/></svg>">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <svg width="32" height="32" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#ng)"/><defs><linearGradient id="ng" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#0066FF"/><stop offset="1" stop-color="#00D4FF"/></linearGradient></defs><path d="M7 14L14 7l7 7-7 7z" fill="#fff" opacity=".9"/></svg>
+    Thiqti
+  </a>
+  <div class="nav-actions">
+    <a href="results.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Explorer
+    </a>
+    <a href="compare.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+      Comparer
+    </a>
+    <a href="favorites.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      Favoris
+    </a>
+  </div>
+</nav>
+
+<div class="hero-chat">
+  <!-- Chat Header -->
+  <div class="chat-header">
+    <div class="chat-header-avatar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+    </div>
+    <div class="chat-header-info">
+      <h3>Thiqti Assistant</h3>
+      <p>Intelligence artificielle automobile</p>
+    </div>
+  </div>
+
+  <!-- Chat Messages -->
+  <div class="chat-messages" id="chatMessages">
+    <!-- Bot Welcome -->
+    <div class="chat-msg bot anim-up">
+      <div class="chat-msg-avatar bot">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+      </div>
+      <div class="chat-msg-bubble">
+        <p>Bonjour ! Je suis <strong>Thiqti</strong>, votre assistant automobile intelligent.</p>
+        <p>Dites-moi ce que vous recherchez, et je trouverai la voiture parfaite pour vous au Maroc.</p>
+        <div class="chat-suggestions">
+          <span class="chip" onclick="sendSuggestion('Je cherche un SUV familial autour de 350 000 DH')">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+            SUV familial 350K
+          </span>
+          <span class="chip" onclick="sendSuggestion('Dacia Duster automatique, budget 200 000 DH')">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+            Dacia Duster
+          </span>
+          <span class="chip" onclick="sendSuggestion('Voiture hybride pour la ville, confortable')">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Hybride ville
+          </span>
+          <span class="chip" onclick="sendSuggestion('Berline premium, moins de 500 000 DH')">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Berline premium
+          </span>
+          <span class="chip" onclick="sendSuggestion('Citadine économique pour aller au travail')">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Citadine eco
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input -->
+  <div class="chat-input-area">
+    <div class="chat-input-wrap">
+      <input type="text" placeholder="Décrivez votre voiture idéale..." id="chatInput">
+      <button class="btn-mic" id="micBtn" title="Recherche vocale">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0M12 17v4M8 21h8"/></svg>
+      </button>
+      <button class="btn-send" id="sendBtn" onclick="sendMessage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const micBtn = document.getElementById('micBtn');
+
+// Simulated AI responses
+const responses = {
+  'suv': {
+    text: "J'ai trouvé plusieurs SUV qui correspondent à votre recherche. Voici les meilleurs résultats :",
+    query: "SUV hybride confortable famille 350000 DH"
+  },
+  'duster': {
+    text: "Excellent choix ! La Dacia Duster est très populaire au Maroc. Voici les offres disponibles :",
+    query: "Dacia Duster automatique 200000 DH"
+  },
+  'hybride': {
+    text: "Les voitures hybrides sont parfaites pour la ville. Voici mes recommandations :",
+    query: "Voiture hybride ville confortable"
+  },
+  'berline': {
+    text: "Voici les berlines premium les mieux notées dans votre budget :",
+    query: "Berline premium 500000 DH"
+  },
+  'citadine': {
+    text: "Pour un usage quotidien en ville, voici les citadines les plus économiques :",
+    query: "Citadine économique ville"
+  },
+  'default': {
+    text: "Laissez-moi analyser votre demande. Je vais chercher les véhicules qui correspondent le mieux à vos critères.",
+    query: null
+  }
+};
+
+function getResponse(text) {
+  const lower = text.toLowerCase();
+  if (lower.includes('suv') || lower.includes('familial')) return responses.suv;
+  if (lower.includes('duster') || lower.includes('dacia')) return responses.duster;
+  if (lower.includes('hybride') || lower.includes('ville')) return responses.hybride;
+  if (lower.includes('berline') || lower.includes('premium')) return responses.berline;
+  if (lower.includes('citadine') || lower.includes('économique') || lower.includes('travail')) return responses.citadine;
+  return responses.default;
+}
+
+function addMessage(text, isUser, suggestions) {
+  const msg = document.createElement('div');
+  msg.className = `chat-msg ${isUser ? 'user' : 'bot'}`;
+  
+  const avatarSvg = isUser 
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>';
+  
+  let html = `
+    <div class="chat-msg-avatar ${isUser ? 'human' : 'bot'}">${avatarSvg}</div>
+    <div class="chat-msg-bubble"><p>${text}</p>`;
+  
+  if (suggestions) {
+    html += `<div class="chat-suggestions">`;
+    suggestions.forEach(s => {
+      html += `<span class="chip" onclick="sendSuggestion('${s}')">${s}</span>`;
+    });
+    html += `</div>`;
+  }
+  
+  if (!isUser) {
+    html += `<div style="margin-top:12px"><a href="results.html?q=${encodeURIComponent(getResponse(text).query || text)}" class="btn btn-p btn-sm" style="font-size:.8125rem">Voir les résultats →</a></div>`;
+  }
+  
+  html += `</div>`;
+  msg.innerHTML = html;
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addLoading() {
+  const msg = document.createElement('div');
+  msg.className = 'chat-msg bot';
+  msg.id = 'loading';
+  msg.innerHTML = `
+    <div class="chat-msg-avatar bot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></div>
+    <div class="chat-msg-bubble"><p style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:var(--pri);animation:pulse 1s infinite"></span> Réflexion...</p></div>
+  `;
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeLoading() {
+  const el = document.getElementById('loading');
+  if (el) el.remove();
+}
+
+function sendSuggestion(text) {
+  addMessage(text, true);
+  addLoading();
+  
+  setTimeout(() => {
+    removeLoading();
+    const response = getResponse(text);
+    addMessage(response.text, false);
+  }, 1000 + Math.random() * 1000);
+}
+
+function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  
+  addMessage(text, true);
+  chatInput.value = '';
+  addLoading();
+  
+  setTimeout(() => {
+    removeLoading();
+    const response = getResponse(text);
+    addMessage(response.text, false);
+  }, 1200 + Math.random() * 800);
+}
+
+chatInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') sendMessage();
+});
+
+// Voice recognition
+let recognition = null;
+micBtn.addEventListener('click', function() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('La reconnaissance vocale n\'est pas supportée par votre navigateur.');
+    return;
+  }
+  
+  if (recognition) {
+    recognition.stop();
+    recognition = null;
+    micBtn.classList.remove('active');
+    return;
+  }
+  
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'fr-FR';
+  
+  micBtn.classList.add('active');
+  
+  recognition.onresult = function(event) {
+    const transcript = Array.from(event.results).map(r => r[0].transcript).join('');
+    chatInput.value = transcript;
+  };
+  
+  recognition.onend = function() {
+    micBtn.classList.remove('active');
+    recognition = null;
+  };
+  
+  recognition.onerror = function() {
+    micBtn.classList.remove('active');
+    recognition = null;
+  };
+  
+  recognition.start();
+});
+</script>
+
+</body>
+</html>

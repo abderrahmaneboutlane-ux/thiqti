@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f1f5f9" rx="8"/>
+  <g transform="translate(120, 80)">
+    <!-- car body -->
+    <path d="M20,80 L40,40 L140,40 L160,80 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
+    <rect x="10" y="80" width="160" height="40" rx="8" fill="#94a3b8" stroke="#64748b" stroke-width="2"/>
+    <!-- windows -->
+    <path d="M45,45 L55,75 L95,75 L95,45 Z" fill="#e2e8f0"/>
+    <path d="M100,45 L100,75 L140,75 L130,45 Z" fill="#e2e8f0"/>
+    <!-- wheels -->
+    <circle cx="50" cy="125" r="18" fill="#334155"/>
+    <circle cx="50" cy="125" r="8" fill="#64748b"/>
+    <circle cx="130" cy="125" r="18" fill="#334155"/>
+    <circle cx="130" cy="125" r="8" fill="#64748b"/>
+  </g>
+  <text x="200" y="250" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="14" fill="#64748b">Image non disponible</text>
+</svg>

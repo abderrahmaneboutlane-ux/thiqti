@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thiqti — Trouvez votre voiture idéale</title>
+<meta name="description" content="Thiqti, moteur de recherche automobile IA au Maroc. Décrivez la voiture de vos rêves, Thiqti la trouve.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════════
+   THIQTI — NEO-GLASSMORPHISM LIGHT MODE
+   Design System
+   ════════════════════════════════════════════════════════════ */
+:root {
+  --blue:        #0052ff;
+  --blue-soft:   rgba(0, 82, 255, 0.08);
+  --violet:      #7c3aed;
+  --violet-soft: rgba(124, 58, 237, 0.07);
+  --cyan:        #06b6d4;
+
+  --ink:         #0f172a;
+  --ink-2:       #334155;
+  --ink-3:       #64748b;
+  --ink-4:       #94a3b8;
+
+  --glass-bg:    rgba(255, 255, 255, 0.55);
+  --glass-brd:   rgba(255, 255, 255, 0.85);
+
+  --r-md:  16px;
+  --r-lg:  24px;
+  --r-xl:  32px;
+
+  --ease:      cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-pop:  cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --shadow-soft: 0 4px 16px rgba(15, 23, 42, 0.05);
+  --shadow-lift: 0 18px 44px -12px rgba(15, 23, 42, 0.14);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: #f5f7fc;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button { font-family: inherit; border: none; outline: none; cursor: pointer; background: none; color: inherit; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 8px; }
+
+::selection { background: rgba(0, 82, 255, 0.15); }
+
+/* ════════════════════════════════════════════════════════════
+   1 · AURORA — orbes de lumière floues en mouvement lent
+   ════════════════════════════════════════════════════════════ */
+.aurora {
+  position: fixed; inset: 0;
+  z-index: -1; overflow: hidden;
+  pointer-events: none;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+.orb-1 {
+  width: 56vw; height: 56vw;
+  top: -18vw; left: -12vw;
+  background: radial-gradient(circle at 35% 35%, rgba(147, 197, 253, 0.55), rgba(147, 197, 253, 0) 68%);
+  animation: drift-a 34s ease-in-out infinite alternate;
+}
+.orb-2 {
+  width: 48vw; height: 48vw;
+  top: 6vh; right: -14vw;
+  background: radial-gradient(circle at 60% 40%, rgba(196, 181, 253, 0.50), rgba(196, 181, 253, 0) 66%);
+  animation: drift-b 41s ease-in-out infinite alternate;
+}
+.orb-3 {
+  width: 42vw; height: 42vw;
+  bottom: -16vw; left: 24vw;
+  background: radial-gradient(circle at 45% 45%, rgba(165, 243, 252, 0.38), rgba(165, 243, 252, 0) 64%);
+  animation: drift-c 47s ease-in-out infinite alternate;
+}
+.orb-4 {
+  width: 30vw; height: 30vw;
+  bottom: 8vh; right: 18vw;
+  background: radial-gradient(circle at 50% 50%, rgba(199, 210, 254, 0.34), rgba(199, 210, 254, 0) 62%);
+  animation: drift-b 29s ease-in-out infinite alternate-reverse;
+}
+@keyframes drift-a {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(9vw, 7vh) scale(1.12); }
+  100% { transform: translate(-4vw, 12vh) scale(0.95); }
+}
+@keyframes drift-b {
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+  50%  { transform: translate(-11vw, 9vh) scale(1.08) rotate(12deg); }
+  100% { transform: translate(5vw, -7vh) scale(1.15) rotate(-8deg); }
+}
+@keyframes drift-c {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(10vw, -9vh) scale(1.2); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   2 · TOPBAR — en-tête minimal
+   ════════════════════════════════════════════════════════════ */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 1320px; margin: 0 auto;
+  padding: 26px 40px 0;
+  position: relative; z-index: 5;
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 11px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.28rem; font-weight: 700; letter-spacing: -0.02em;
+}
+.brand-mark {
+  width: 34px; height: 34px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+  display: grid; place-items: center;
+  box-shadow: 0 6px 18px rgba(0, 82, 255, 0.32),
+              inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  color: #fff;
+}
+.topbar-tag {
+  font-size: 0.8rem; font-weight: 600; color: var(--ink-3);
+  padding: 8px 16px; border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-brd);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ════════════════════════════════════════════════════════════
+   3 · HERO — grille asymétrique
+   ════════════════════════════════════════════════════════════ */
+.hero {
+  display: grid;
+  grid-template-columns: 1.04fr 1fr;
+  align-items: center; gap: clamp(32px, 5vw, 72px);
+  max-width: 1320px; margin: 0 auto;
+  padding: clamp(40px, 7vh, 84px) 40px 150px;
+  position: relative; z-index: 4;
+}
+
+/* — Colonne gauche : contenu éditorial — */
+.hero-left { max-width: 600px; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 8px 18px; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--blue);
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(0, 82, 255, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 24px rgba(0, 82, 255, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  margin-bottom: 30px;
+  animation: rise-in 0.9s var(--ease) both;
+}
+.badge-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 0 rgba(0, 82, 255, 0.5);
+  animation: pulse-dot 2.4s ease-out infinite;
+}
+@keyframes pulse-dot {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 82, 255, 0.45); }
+  70%  { box-shadow: 0 0 0 11px rgba(0, 82, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 82, 255, 0); }
+}
+
+.hero h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.9rem, 6.2vw, 5.1rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  margin-bottom: 26px;
+  animation: rise-in 0.9s var(--ease) 0.08s both;
+}
+.grad-text {
+  background: linear-gradient(90deg,
+    var(--blue) 0%, var(--violet) 28%,
+    var(--cyan) 55%, var(--blue) 82%);
+  background-size: 280% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gradient-flow 7s linear infinite;
+}
+@keyframes gradient-flow {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 280% 50%; }
+}
+
+.hero-sub {
+  font-size: 1.13rem; font-weight: 450;
+  color: var(--ink-3); line-height: 1.72;
+  max-width: 480px;
+  margin-bottom: 36px;
+  animation: rise-in 0.9s var(--ease) 0.16s both;
+}
+.hero-sub strong { color: var(--ink-2); font-weight: 650; }
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* — Pilules magnétiques — */
+.pills-label {
+  font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-4);
+  margin-bottom: 15px;
+  animation: rise-in 0.9s var(--ease) 0.22s both;
+}
+.pills {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  animation: rise-in 0.9s var(--ease) 0.26s both;
+}
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 22px; border-radius: 999px;
+  font-size: 0.88rem; font-weight: 650; color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05),
+              inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: transform 0.3s var(--ease),
+              box-shadow 0.3s var(--ease),
+              border-color 0.3s var(--ease),
+              color 0.3s var(--ease),
+              background-color 0.3s var(--ease);
+  will-change: transform;
+}
+.pill svg { color: var(--ink-4); transition: color 0.3s var(--ease); flex-shrink: 0; }
+.pill:hover, .pill:focus-visible {
+  transform: translateY(-4px);
+  color: var(--blue);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 82, 255, 0.30);
+  box-shadow: 0 14px 34px -8px rgba(0, 82, 255, 0.28),
+              0 3px 10px rgba(15, 23, 42, 0.05),
+              inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+.pill:hover svg, .pill:focus-visible svg { color: var(--blue); }
+.pill:active { transform: translateY(-1px) scale(0.98); transition-duration: 0.1s; }
+
+/* ════════════════════════════════════════════════════════════
+   4 · ZONE 3D — #canvas-container + lueur + placeholder verre
+   ════════════════════════════════════════════════════════════ */
+.hero-right {
+  position: relative;
+  display: grid; place-items: center;
+  animation: rise-in 1s var(--ease) 0.2s both;
+}
+#canvas-container {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  aspect-ratio: 1 / 0.86;
+  border-radius: var(--r-xl);
+  background: linear-gradient(160deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.34) 55%,
+    rgba(238, 242, 255, 0.5) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 44px 90px -26px rgba(15, 23, 42, 0.16),
+    0 12px 30px -12px rgba(0, 82, 255, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(148, 163, 184, 0.12);
+  overflow: hidden;
+  display: grid; place-items: center;
+}
+/* lueur subtile derrière le conteneur */
+#canvas-container::before {
+  content: '';
+  position: absolute; inset: -12%;
+  background:
+    radial-gradient(42% 42% at 30% 28%, rgba(0, 82, 255, 0.14), transparent 72%),
+    radial-gradient(38% 38% at 74% 70%, rgba(124, 58, 237, 0.12), transparent 70%);
+  filter: blur(34px);
+  z-index: -1;
+  pointer-events: none;
+}
+/* reflet diagonal façon vitre */
+#canvas-container::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 46%,
+    transparent 60%);
+  pointer-events: none;
+}
+
+/* — Placeholder luxueux : anneau de chargement en verre — */
+.loader-stage {
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+.loader-stage.hidden { opacity: 0; transform: scale(0.92); pointer-events: none; }
+.glass-spinner {
+  width: 78px; height: 78px; border-radius: 50%;
+  position: relative;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 34px rgba(0, 82, 255, 0.12),
+              inset 0 1px 0 rgba(255, 255, 255, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.glass-spinner::before {
+  content: '';
+  position: absolute; inset: -7px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    transparent 0deg, rgba(0, 82, 255, 0.65) 90deg,
+    rgba(124, 58, 237, 0.65) 160deg, transparent 220deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+  animation: spin 1.5s linear infinite;
+}
+.glass-spinner::after {
+  content: '';
+  position: absolute; inset: 30%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+  opacity: 0.85;
+  box-shadow: 0 4px 14px rgba(0, 82, 255, 0.4);
+  animation: breathe 2.2s ease-in-out infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.85; }
+  50%      { transform: scale(1.14); opacity: 1; }
+}
+.loader-text {
+  font-size: 0.82rem; font-weight: 650;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-4);
+  background: linear-gradient(90deg, var(--ink-4) 25%, var(--blue) 50%, var(--ink-4) 75%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2.4s linear infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* canvas WebGL injecté */
+#canvas-container canvas {
+  position: absolute; inset: 0;
+  width: 100% !important; height: 100% !important;
+  display: block;
+  cursor: grab; border-radius: inherit;
+  touch-action: pan-y;
+}
+#canvas-container canvas:active { cursor: grabbing; }
+
+.hint-chip {
+  position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 650; color: var(--ink-3);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-soft);
+  white-space: nowrap;
+  transition: opacity 0.5s var(--ease);
+}
+.hint-chip.hidden { opacity: 0; }
+
+/* ════════════════════════════════════════════════════════════
+   5 · PANNEAU STATS — glassmorphism avancé, bas droite
+   ════════════════════════════════════════════════════════════ */
+.stats-panel {
+  position: fixed;
+  right: 44px; bottom: 118px;
+  z-index: 40;
+  display: flex; align-items: center; gap: 30px;
+  padding: 22px 34px;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.04);
+  border-radius: 24px;
+  animation: float-in 1s var(--ease) 0.5s both;
+}
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.stat-item { display: flex; flex-direction: column; gap: 1px; }
+.stat-n {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.42rem; font-weight: 700; line-height: 1.1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(120deg, var(--ink) 20%, var(--blue) 90%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.stat-l { font-size: 0.76rem; font-weight: 550; color: var(--ink-3); white-space: nowrap; }
+.stat-sep { width: 1px; height: 34px; background: rgba(15, 23, 42, 0.09); }
+
+/* ════════════════════════════════════════════════════════════
+   6 · DOCK NAVIGATION — façon macOS
+   ════════════════════════════════════════════════════════════ */
+.dock {
+  position: fixed;
+  bottom: 26px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex; align-items: stretch; gap: 6px;
+  padding: 9px 14px 13px;
+  border-radius: 999px;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 30px 60px -12px rgba(15, 23, 42, 0.18),
+    0 6px 18px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  animation: dock-in 0.9s var(--ease-pop) 0.35s both;
+}
+@keyframes dock-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(46px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.dock-btn {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  gap: 4px; width: 62px; padding: 9px 0 2px;
+  border-radius: 18px;
+  color: var(--ink-4);
+  transition: transform 0.3s var(--ease-pop), color 0.3s var(--ease),
+              background-color 0.3s var(--ease);
+  will-change: transform;
+}
+.dock-btn svg { transition: transform 0.3s var(--ease-pop); }
+.dock-btn:hover, .dock-btn:focus-visible {
+  transform: scale(1.15) translateY(-5px);
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 24px -6px rgba(15, 23, 42, 0.14);
+}
+.dock-btn.active { color: var(--blue); }
+.dock-btn.active svg { filter: drop-shadow(0 4px 10px rgba(0, 82, 255, 0.35)); }
+.dock-label {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+/* pastille lumineuse qui suit l'actif */
+.dock-indicator {
+  position: absolute;
+  bottom: 4px;
+  width: 5px; height: 5px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--blue), var(--violet));
+  box-shadow: 0 0 8px 1px rgba(0, 82, 255, 0.65);
+  transition: left 0.4s var(--ease-pop), opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+}
+.dock-indicator.show { opacity: 1; }
+/* infobulle */
+.dock-btn::before {
+  content: attr(data-tip);
+  position: absolute; top: -40px; left: 50%;
+  transform: translateX(-50%) translateY(6px) scale(0.9);
+  padding: 7px 13px; border-radius: 10px;
+  font-size: 0.72rem; font-weight: 650; color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 1);
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.18);
+  white-space: nowrap;
+  opacity: 0; visibility: hidden;
+  transition: all 0.25s var(--ease);
+  pointer-events: none;
+}
+.dock-btn:hover::before, .dock-btn:focus-visible::before {
+  opacity: 1; visibility: visible;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* ════════════════════════════════════════════════════════════
+   7 · RESPONSIVE
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 1080px) {
+  .stats-panel { right: 50%; transform: translateX(50%); bottom: 116px; gap: 24px; padding: 18px 26px; }
+  @keyframes float-in {
+    from { opacity: 0; transform: translateX(50%) translateY(30px); }
+    to   { opacity: 1; transform: translateX(50%) translateY(0); }
+  }
+}
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; padding-top: 34px; gap: 44px; }
+  .hero-right { order: 2; }
+  #canvas-container { max-width: 520px; aspect-ratio: 1 / 0.8; }
+  .topbar { padding: 20px 24px 0; }
+  .hero { padding-left: 24px; padding-right: 24px; }
+}
+@media (max-width: 560px) {
+  .hero h1 { font-size: clamp(2.3rem, 10vw, 3rem); }
+  .hero-sub { font-size: 1rem; }
+  .pill { padding: 10px 17px; font-size: 0.8rem; }
+  .stats-panel { gap: 16px; padding: 14px 20px; border-radius: 20px; bottom: 112px; }
+  .stat-n { font-size: 1.15rem; }
+  .stat-l { font-size: 0.66rem; }
+  .stat-sep { height: 26px; }
+  .dock-btn { width: 52px; }
+  .dock { padding: 8px 10px 11px; }
+  .hint-chip { font-size: 0.66rem; padding: 7px 13px; }
+}
+
+/* Accessibilité : mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ AURORA BACKGROUND ═══ -->
+<div class="aurora" aria-hidden="true">
+  <span class="orb orb-1"></span>
+  <span class="orb orb-2"></span>
+  <span class="orb orb-3"></span>
+  <span class="orb orb-4"></span>
+</div>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+    </span>
+    Thiqti
+  </div>
+  <span class="topbar-tag">Maroc · Moteur IA Automobile</span>
+</header>
+
+<!-- ═══ HERO — GRILLE ASYMÉTRIQUE ═══ -->
+<main class="hero">
+
+  <!-- Gauche : éditorial + pilules magnétiques -->
+  <section class="hero-left">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Moteur de Recherche Automobile IA
+    </div>
+
+    <h1>Trouvez votre voiture<br><span class="grad-text">idéale</span></h1>
+
+    <p class="hero-sub">
+      Décrivez vos critères en <strong>français</strong> ou en <strong>darija</strong>,
+      notre IA analyse <strong>1&nbsp;700+ véhicules</strong> vérifiés et vous présente
+      uniquement les perles. Sans blabla, sans perte de temps.
+    </p>
+
+    <p class="pills-label">Recherches populaires</p>
+    <div class="pills" role="group" aria-label="Filtres rapides">
+      <button class="pill" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 7v10l8 5 8-5V7l-8-5Z"/></svg>
+        SUV hybride
+      </button>
+      <button class="pill" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l-1.5-5.2A2 2 0 0 1 6.4 9h11.2a2 2 0 0 1 1.9 2.8L18 17"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/><path d="M7 11V8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3"/></svg>
+        Berline auto
+      </button>
+      <button class="pill" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+        100 % électrique
+      </button>
+      <button class="pill" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Moins de 350 000 DH
+      </button>
+      <button class="pill" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.6-9.5-8.5C.6 9.4 2.4 6 5.7 6c2 0 3.3 1 4.3 2.5C11 7 12.3 6 14.3 6c3.3 0 5.1 3.4 3.2 6.5C15 16.4 12 21 12 21Z"/></svg>
+        Famille nombreuse
+      </button>
+    </div>
+  </section>
+
+  <!-- Droite : zone 3D WebGL -->
+  <section class="hero-right" aria-label="Vitrine 3D du véhicule">
+    <div id="canvas-container">
+      <div class="loader-stage" id="loaderStage">
+        <div class="glass-spinner" role="status" aria-label="Chargement du modèle 3D"></div>
+        <span class="loader-text">Initialisation du showroom</span>
+      </div>
+      <span class="hint-chip" id="hintChip">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+        Glisser pour tourner autour du véhicule
+      </span>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ PANNEAU STATS FLOTTANT ═══ -->
+<aside class="stats-panel" aria-label="Statistiques de la plateforme">
+  <div class="stat-item">
+    <span class="stat-n">1 700+</span>
+    <span class="stat-l">Véhicules analysés</span>
+  </div>
+  <span class="stat-sep" aria-hidden="true"></span>
+  <div class="stat-item">
+    <span class="stat-n">15 000+</span>
+    <span class="stat-l">Avis vérifiés</span>
+  </div>
+  <span class="stat-sep" aria-hidden="true"></span>
+  <div class="stat-item">
+    <span class="stat-n">98 %</span>
+    <span class="stat-l">Satisfaction IA</span>
+  </div>
+</aside>
+
+<!-- ═══ DOCK NAVIGATION ═══ -->
+<nav class="dock" aria-label="Navigation principale">
+  <button class="dock-btn active" data-tip="Accueil" aria-label="Accueil">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+    <span class="dock-label">Accueil</span>
+  </button>
+  <button class="dock-btn" data-tip="Explorer" aria-label="Explorer">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <span class="dock-label">Explorer</span>
+  </button>
+  <button class="dock-btn" data-tip="Comparer" aria-label="Comparer">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="m4 4 5 5"/></svg>
+    <span class="dock-label">Comparer</span>
+  </button>
+  <button class="dock-btn" data-tip="Favoris" aria-label="Favoris">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+    <span class="dock-label">Favoris</span>
+  </button>
+  <button class="dock-btn" data-tip="Assistant IA" aria-label="Assistant IA">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+    <span class="dock-label">Assistant</span>
+  </button>
+  <span class="dock-indicator" id="dockIndicator" aria-hidden="true"></span>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════
+     SCRIPTS — dock + injection WebGL optionnelle
+     ════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  /* — Dock : pastille lumineuse suivant l'élément actif — */
+  var dock = document.querySelector('.dock');
+  var indicator = document.getElementById('dockIndicator');
+  var buttons = dock.querySelectorAll('.dock-btn');
+
+  function moveIndicator(btn) {
+    var r = btn.getBoundingClientRect();
+    var d = dock.getBoundingClientRect();
+    indicator.style.left = (r.left - d.left + r.width / 2 - 2.5) + 'px';
+    indicator.classList.add('show');
+  }
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      buttons.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      moveIndicator(btn);
+    });
+    if (btn.classList.contains('active')) moveIndicator(btn);
+  });
+  window.addEventListener('resize', function () {
+    var act = dock.querySelector('.dock-btn.active');
+    if (act) moveIndicator(act);
+  });
+
+  /* — Parallaxe légère du conteneur 3D (profondeur) — */
+  var stage = document.getElementById('canvas-container');
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var raf = null;
+    document.addEventListener('mousemove', function (e) {
+      if (raf) return;
+      raf = requestAnimationFrame(function () {
+        var r = stage.getBoundingClientRect();
+        var cx = r.left + r.width / 2;
+        var cy = r.top + r.height / 2;
+        var dx = (e.clientX - cx) / window.innerWidth;
+        var dy = (e.clientY - cy) / window.innerHeight;
+        stage.style.transform =
+          'perspective(1100px) rotateY(' + (dx * 4).toFixed(2) + 'deg) rotateX(' + (-dy * 4).toFixed(2) + 'deg)';
+        raf = null;
+      });
+    });
+  }
+})();
+</script>
+
+<!-- @PREMIUM_3D_TAIL -->
+
+</body>
+</html>

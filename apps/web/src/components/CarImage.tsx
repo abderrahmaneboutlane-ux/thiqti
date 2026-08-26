@@ -1,95 +1,105 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { CarFront } from "lucide-react";
-
-const BRAND_COLORS: Record<string, string> = {
-  Dacia: "#00614E",
-  Renault: "#FFCC33",
-  Peugeot: "#1F3C73",
-  Toyota: "#EB0A1E",
-  Hyundai: "#002C5F",
-  Kia: "#05141F",
-  Volkswagen: "#001E50",
-  BMW: "#1C69D4",
-  Mercedes: "#333333",
-  BYD: "#1A1A1A",
-  MG: "#C8102E",
-  Ford: "#003478",
-  Nissan: "#C3002F",
-  Fiat: "#8B1F40",
-  Citroën: "#6B6E72",
-  Opel: "#FFD700",
-  Jeep: "#4A6741",
-  "Škoda": "#4BA82E",
-  Seat: "#E81F2B",
-  Suzuki: "#003B73",
-  Volvo: "#003057",
-  DFSK: "#C41230",
-  Mazda: "#910A2E",
-};
-
-function getInitials(make: string, model: string): string {
-  return `${make.charAt(0)}${model.charAt(0)}`.toUpperCase();
-}
-
-function getBrandColor(make: string): string {
-  return BRAND_COLORS[make] || "#1a1a2e";
-}
+import { useState, useCallback, useMemo } from "react";
+import CarIllustration from "./CarIllustration";
 
 interface CarImageProps {
   src: string | undefined;
+  sources?: string[];
   alt: string;
   make: string;
   model: string;
+  bodyType?: string;
   className?: string;
 }
 
-export default function CarImage({ src, alt, make, model, className = "" }: CarImageProps) {
-  const [imgError, setImgError] = useState(false);
-  const [imgSrc, setImgSrc] = useState(src);
+const BRAND_HD_IMAGES: Record<string, string> = {
+  dacia: "https://images.unsplash.com/photo-1611016186333-205f68d3d8ec?w=800&auto=format&fit=crop&q=80",
+  renault: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&auto=format&fit=crop&q=80",
+  peugeot: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80",
+  volkswagen: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&auto=format&fit=crop&q=80",
+  toyota: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80",
+  hyundai: "https://images.unsplash.com/photo-1614200179396-2bdb77ebf81b?w=800&auto=format&fit=crop&q=80",
+  kia: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80",
+  "mercedes-benz": "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&auto=format&fit=crop&q=80",
+  mercedes: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&auto=format&fit=crop&q=80",
+  bmw: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&auto=format&fit=crop&q=80",
+  audi: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=800&auto=format&fit=crop&q=80",
+  byd: "https://images.unsplash.com/photo-1563720223185-11003d516935?w=800&auto=format&fit=crop&q=80",
+  mg: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80",
+  citroën: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80",
+  citroen: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80",
+  opel: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80",
+  chery: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&auto=format&fit=crop&q=80",
+  geely: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&auto=format&fit=crop&q=80",
+  cupra: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80",
+  porsche: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80",
+  ford: "https://images.unsplash.com/photo-1551830820-330a71b99659?w=800&auto=format&fit=crop&q=80",
+  nissan: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&auto=format&fit=crop&q=80",
+  honda: "https://images.unsplash.com/photo-1606611013016-969c19ba27a5?w=800&auto=format&fit=crop&q=80",
+  mazda: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&auto=format&fit=crop&q=80",
+  suzuki: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&auto=format&fit=crop&q=80",
+  fiat: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80",
+  skoda: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&auto=format&fit=crop&q=80",
+  seat: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&auto=format&fit=crop&q=80",
+  default: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop&q=80"
+};
+
+const BODY_HD_IMAGES: Record<string, string> = {
+  suv: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&auto=format&fit=crop&q=80",
+  citadine: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80",
+  berline: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80",
+  crossover: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80",
+  monospace: "https://images.unsplash.com/photo-1508974239320-0a029497e820?w=800&auto=format&fit=crop&q=80",
+  "pick-up": "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&auto=format&fit=crop&q=80",
+  utilitaire: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&auto=format&fit=crop&q=80"
+};
+
+export default function CarImage({ src, sources = [], alt, make, model, bodyType, className = "" }: CarImageProps) {
+  const [index, setIndex] = useState(0);
+  const [fallbackFailed, setFallbackFailed] = useState(false);
+
+  const cleanMake = (make || "").toLowerCase().trim();
+  const cleanBody = (bodyType || "").toLowerCase().trim();
+  const fallbackHd = BRAND_HD_IMAGES[cleanMake] || BODY_HD_IMAGES[cleanBody] || BRAND_HD_IMAGES.default;
+
+  const all = useMemo(() => {
+    const list: string[] = [];
+    if (src && src.startsWith("http")) {
+      list.push(src);
+    }
+    for (const s of sources) {
+      if (s && s.startsWith("http") && !list.includes(s)) {
+        list.push(s);
+      }
+    }
+    if (!list.includes(fallbackHd)) {
+      list.push(fallbackHd);
+    }
+    return list;
+  }, [src, sources, fallbackHd]);
 
   const handleError = useCallback(() => {
-    if (!imgError) {
-      setImgError(true);
+    if (index < all.length - 1) {
+      setIndex(index + 1);
+    } else {
+      setFallbackFailed(true);
     }
-  }, [imgError]);
+  }, [index, all]);
 
-  if (imgError || !imgSrc) {
-    const color = getBrandColor(make);
-    const initials = getInitials(make, model);
-
+  if (!fallbackFailed && all.length > 0 && index < all.length) {
     return (
-      <div
-        className={`relative overflow-hidden ${className}`}
-        style={{
-          background: `linear-gradient(135deg, ${color}ee 0%, ${color}aa 50%, ${color}66 100%)`,
-        }}
-      >
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <CarFront className="w-12 h-12 text-white/30 mb-2" />
-          <span className="text-white/80 text-lg font-bold tracking-wider">
-            {initials}
-          </span>
-          <span className="text-white/50 text-xs mt-1">
-            {make} {model}
-          </span>
-        </div>
-        <div
-          className="absolute bottom-0 left-0 right-0 h-1"
-          style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
-        />
-      </div>
+      <img
+        key={all[index]}
+        src={all[index]}
+        alt={alt || `${make} ${model}`}
+        className={className}
+        onError={handleError}
+        loading="lazy"
+        decoding="async"
+      />
     );
   }
 
-  return (
-    <img
-      src={imgSrc}
-      alt={alt}
-      className={className}
-      onError={handleError}
-      loading="lazy"
-    />
-  );
+  return <CarIllustration make={make} model={model} className={className} />;
 }

@@ -1,21 +1,7 @@
 const AUTO24_API = "https://api.auto24.ma/api/cars";
 
-export interface CarListing {
-  id: string;
-  title: string;
-  make: string;
-  model: string;
-  year: number;
-  price: number;
-  priceFormatted: string;
-  km: number;
-  fuel: string;
-  city: string;
-  image: string;
-  score: number;
-  source: string;
-  url: string;
-}
+export { type CarListing } from "@/types";
+import type { CarListing } from "@/types";
 
 interface Auto24Car {
   _id: string;
@@ -97,7 +83,7 @@ function formatPrice(price: number): string {
 function computeScore(car: Auto24Car): number {
   let score = 70;
   const year = parseInt(car.modelYear || "2020");
-  const currentYear = 2026;
+  const currentYear = new Date().getFullYear();
   const age = currentYear - year;
   if (age <= 1) score += 15;
   else if (age <= 2) score += 10;

@@ -1,0 +1,463 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SLEIPNIR API",
+    "description": "API du moteur de recherche automobile IA. Recherche en langage naturel, baromètre d'e-réputation, comparaison de véhicules.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Volund Ventures SARL",
+      "url": "https://volund-ventures.com"
+    }
+  },
+  "servers": [
+    { "url": "http://localhost:3000", "description": "Développement" },
+    { "url": "https://sleipnir.vercel.app", "description": "Production" }
+  ],
+  "paths": {
+    "/api/search": {
+      "get": {
+        "operationId": "searchVehicles",
+        "summary": "Recherche de véhicules en langage naturel",
+        "description": "Recherche des véhicules en utilisant une requête en langage naturel français. Le moteur NLP extrait les critères explicites et implicites, puis classe les résultats via l'algorithme TOPSIS.",
+        "tags": ["Recherche"],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "minLength": 2 },
+            "description": "Requête en langage naturel (ex: 'SUV hybride autour de 350000 DH')",
+            "example": "SUV hybride autour de 350000 DH, confortable pour la famille"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Résultats de recherche classés par pertinence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requête trop courte ou invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur interne du serveur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reputation": {
+      "get": {
+        "operationId": "getReputation",
+        "summary": "Récupérer le baromètre d'e-réputation d'un modèle",
+        "description": "Retourne le score de satisfaction, les catégories d'aspects, les extraits d'avis et le volume pour un modèle de véhicule donné. Le seuil minimal de publication est de 30 mentions exploitables.",
+        "tags": ["Réputation"],
+        "parameters": [
+          {
+            "name": "make",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Marque du véhicule",
+            "example": "Toyota"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Modèle du véhicule",
+            "example": "RAV4"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Données de réputation du modèle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReputationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paramètres manquants",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitReview",
+        "summary": "Soumettre un avis sur un modèle",
+        "description": "Ajoute un nouvel avis au baromètre d'e-réputation.",
+        "tags": ["Réputation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Avis enregistré, données de réputation mises à jour",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReputationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Champs obligatoires manquants",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/compare": {
+      "get": {
+        "operationId": "compareVehicles",
+        "summary": "Comparer plusieurs véhicules côte à côte",
+        "description": "Retourne les données détaillées de plusieurs véhicules pour comparaison. Maximum 3 véhicules.",
+        "tags": ["Comparaison"],
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "IDs des véhicules séparés par des virgules (max 3)",
+            "example": "toyota-rav4-2023,hyundai-tucson-2023,kia-sportage-2023"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Données des véhicules à comparer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vehicles": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Vehicle" },
+                      "maxItems": 3
+                    },
+                    "advice": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Conseils IA de décision"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Trop de véhicules ou paramètres invalides",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vehicle/{slug}": {
+      "get": {
+        "operationId": "getVehicle",
+        "summary": "Détails d'un véhicule",
+        "description": "Retourne la fiche complète d'un véhicule : spécifications, réputation, offres.",
+        "tags": ["Véhicule"],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Identifiant du véhicule",
+            "example": "toyota-rav4-2023"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fiche véhicule complète",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VehicleDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Véhicule non trouvé",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SearchCriteria": {
+        "type": "object",
+        "description": "Critères extraits de la requête en langage naturel",
+        "properties": {
+          "carrosserie": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["SUV", "Berline", "Citadine", "Compacte", "Crossover", "Break", "Utilitaire", "Coupé", "Cabriolet", "Monospace"],
+            "description": "Type de carrosserie détecté"
+          },
+          "motorisation": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["Diesel", "Essence", "Hybride", "Électrique", "GNV", "GPL"],
+            "description": "Type de motorisation détecté"
+          },
+          "transmission": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["Manuelle", "Automatique"],
+            "description": "Type de transmission détecté"
+          },
+          "marque": {
+            "type": "string",
+            "nullable": true,
+            "description": "Marque du véhicule"
+          },
+          "budgetMin": {
+            "type": "number",
+            "nullable": true,
+            "description": "Budget minimum en MAD"
+          },
+          "budgetMax": {
+            "type": "number",
+            "nullable": true,
+            "description": "Budget maximum en MAD"
+          },
+          "budgetTolerance": {
+            "type": "number",
+            "description": "Tolérance budgétaire (défaut: 0.15)"
+          },
+          "ville": {
+            "type": "string",
+            "nullable": true,
+            "description": "Ville de recherche"
+          },
+          "anneeMin": {
+            "type": "number",
+            "nullable": true,
+            "description": "Année minimum"
+          },
+          "anneeMax": {
+            "type": "number",
+            "nullable": true,
+            "description": "Année maximum"
+          },
+          "kmMax": {
+            "type": "number",
+            "nullable": true,
+            "description": "Kilométrage maximum"
+          },
+          "intent": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Intentions détectées (familial, sportif, economique, confort, ville, route, tout_terrain)"
+          }
+        }
+      },
+      "Vehicle": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "make": { "type": "string" },
+          "model": { "type": "string" },
+          "year": { "type": "integer" },
+          "price": { "type": "number", "description": "Prix en MAD" },
+          "priceFormatted": { "type": "string" },
+          "km": { "type": "number", "description": "Kilométrage" },
+          "fuel": { "type": "string" },
+          "transmission": { "type": "string" },
+          "bodyType": { "type": "string" },
+          "city": { "type": "string" },
+          "image": { "type": "string", "format": "uri" },
+          "score": { "type": "number", "description": "Score TOPSIS (0-100)" },
+          "source": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "matchPercent": { "type": "number", "description": "Pourcentage de correspondance (0-100)" },
+          "matchScore": { "type": "number", "description": "Score TOPSIS brut (0-1)" }
+        }
+      },
+      "MatchExplanation": {
+        "type": "object",
+        "description": "Explication du classement pour un critère donné",
+        "properties": {
+          "label": { "type": "string", "description": "Nom du critère" },
+          "value": { "type": "string", "description": "Valeur du critère" },
+          "impact": {
+            "type": "string",
+            "enum": ["positive", "negative", "neutral"],
+            "description": "Impact sur le classement"
+          },
+          "reason": { "type": "string", "description": "Explication en langage naturel" }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Vehicle" }
+          },
+          "total": { "type": "integer" },
+          "criteria": { "$ref": "#/components/schemas/SearchCriteria" },
+          "sources": {
+            "type": "object",
+            "additionalProperties": { "type": "integer" }
+          }
+        }
+      },
+      "ReputationCategory": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "score": {
+            "type": "number",
+            "nullable": true,
+            "description": "Score sur 10, null si données insuffisantes"
+          }
+        }
+      },
+      "ReputationExcerpt": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string", "description": "Extrait d'avis anonymisé et tronqué" },
+          "sentiment": {
+            "type": "string",
+            "enum": ["positive", "negative", "neutral"],
+            "description": "Sentiment analysé par NLP"
+          },
+          "score": { "type": "number", "description": "Score de l'avis (1-10)" }
+        }
+      },
+      "ReputationVolume": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer" },
+          "positive": { "type": "integer" },
+          "negative": { "type": "integer" },
+          "neutral": { "type": "integer" }
+        }
+      },
+      "ReputationResponse": {
+        "type": "object",
+        "properties": {
+          "modelKey": { "type": "string" },
+          "totalReviews": { "type": "integer" },
+          "avgScore": {
+            "type": "number",
+            "nullable": true,
+            "description": "Score moyen sur 10, null si < 30 avis"
+          },
+          "windowMonths": { "type": "integer", "description": "Fenêtre temporelle en mois" },
+          "lastUpdated": { "type": "string", "format": "date" },
+          "categories": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReputationCategory" }
+          },
+          "excerpts": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReputationExcerpt" }
+          },
+          "volume": { "$ref": "#/components/schemas/ReputationVolume" }
+        }
+      },
+      "ReviewSubmission": {
+        "type": "object",
+        "required": ["make", "model", "text", "score"],
+        "properties": {
+          "make": { "type": "string" },
+          "model": { "type": "string" },
+          "text": { "type": "string", "minLength": 10 },
+          "score": { "type": "number", "minimum": 1, "maximum": 10 },
+          "sentiment": {
+            "type": "string",
+            "enum": ["positive", "negative", "neutral"],
+            "description": "Sentiment pré-analysé (optionnel, analyse automatique sinon)"
+          }
+        }
+      },
+      "VehicleDetail": {
+        "type": "object",
+        "properties": {
+          "vehicle": { "$ref": "#/components/schemas/Vehicle" },
+          "reputation": { "$ref": "#/components/schemas/ReputationResponse" },
+          "offers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dealerName": { "type": "string" },
+                "city": { "type": "string" },
+                "offerPrice": { "type": "number" },
+                "deliveryWeeks": { "type": "integer" },
+                "promotion": { "type": "string", "nullable": true }
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

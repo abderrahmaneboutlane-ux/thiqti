@@ -1,8 +1,8 @@
 import { writeFileSync } from "fs";
 import { join } from "path";
 
-const API_KEY = "AIzaSyAdlPEXkhqIHhQBxvqYu5_pHxMa6hPjcjY";
-const CX = "e0af8e4e17f5a4e65";
+const API_KEY = process.env.GOOGLE_API_KEY || "";
+const CX = process.env.GOOGLE_CX || "";
 
 interface CarEntry {
   make: string;

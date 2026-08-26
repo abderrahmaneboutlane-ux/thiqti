@@ -51,27 +51,34 @@ User Query ──▶ NLP Parser ──▶ TOPSIS Ranker ──▶ Results
 thiqti/
 ├── apps/
 │   ├── web/          # Next.js 15 app (frontend + API routes)
+│   │   └── src/
+│   │       ├── app/        # Pages (results, vehicle, favorites, compare)
+│   │       ├── components/ # UI components (Button, Input, Chip, Gauge, etc.)
+│   │       └── lib/        # Core logic (NLP, matching, sentiment, sources)
 │   ├── api/          # NestJS API (Phase 2)
 │   └── ai/           # Python FastAPI (reputation analysis)
 ├── packages/
 │   └── database/     # PostgreSQL schema + seeds
 ├── docs/
-│   ├── ADRs/         # Architecture Decision Records
-│   └── architecture/ # C4 models, deployment, security
+│   ├── ADRs/         # 11 Architecture Decision Records
+│   ├── architecture/ # C4 models, security, cost model, data sources
+│   └── m3-startup/   # Pitch deck, financial model, competitive analysis
 ├── docker-compose.yml
 └── package.json      # Monorepo root
 ```
 
 ## Data Sources
 
-| Source | Type | Status |
-|--------|------|--------|
-| Auto24.ma | API | Active |
-| SoeezAuto.ma | Scraping | Active |
-| Avito.ma | Scraping | Active |
-| Moteur.ma | SPA | Removed (not scrapable) |
-| OVoiture.ma | SPA | Removed (not scrapable) |
-| Fallback Dataset | Static JSON | 80+ vehicles, Moroccan market |
+| Source | Type | Status | Legitimacy |
+|--------|------|--------|------------|
+| Auto24.ma | API | Active | Authorized |
+| SoeezAuto.ma | Scraping | Active | Authorized |
+| Avito.ma | Scraping | **Suspended** | Blocked (robots.txt + CGU) |
+| Moteur.ma | SPA | Removed | Not scrapable |
+| OVoiture.ma | SPA | Removed | Not scrapable |
+| Fallback Dataset | Static JSON | Active | 80+ vehicles, Moroccan market |
+
+See `docs/architecture/data-sources.md` for full legitimacy analysis.
 
 ## API Endpoints
 
@@ -167,6 +174,27 @@ vercel --prod    # Manual production deploy
 docker build -t sleipnir .
 docker run -p 3000:3000 sleipnir
 ```
+
+## Documentation
+
+### Architecture (M2)
+- `docs/ADRs/` — 11 Architecture Decision Records
+- `docs/architecture/c4-models.md` — C4 diagrams (Level 1-3)
+- `docs/architecture/security.md` — STRIDE threat model + OWASP
+- `docs/architecture/cost-model.md` — Cost per 1000 searches
+- `docs/architecture/data-sources.md` — Source cartography + legitimacy
+- `docs/architecture/benchmark.md` — 30-query test benchmark
+- `docs/architecture/data-register.md` — Loi 09-08 compliance
+
+### Startup Dossier (M3)
+- `docs/m3-startup/pitch-deck.md` — 12-slide pitch deck
+- `docs/m3-startup/financial-model.md` — 3-year financial model
+- `docs/m3-startup/competitive-analysis.md` — 6+1 competitor analysis
+- `docs/m3-startup/go-to-market.md` — First 1000 users strategy
+- `docs/m3-startup/bank-al-maghrib.md` — Phase 3 payment note
+
+### API
+- `docs/openapi.json` — OpenAPI 3.1 contract
 
 ## Contributing
 
