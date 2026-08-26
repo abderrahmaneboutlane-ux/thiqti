@@ -1,3 +1,24 @@
+export type FuelType = "Diesel" | "Essence" | "Hybride" | "Electrique" | "GNV" | "GPL";
+export type BodyType = "SUV" | "Berline" | "Citadine" | "Compacte" | "Utilitaire" | "Crossover" | "Break" | "Coupe" | "Cabriolet" | "Monospace";
+export type TransmissionType = "Manuelle" | "Automatique";
+export type UserIntent = "family" | "economic" | "sport" | "comfort" | "city" | "road" | "offroad";
+
+export interface SearchIntent {
+  fuel?: FuelType;
+  bodyType?: BodyType;
+  transmission?: TransmissionType;
+  brand?: string;
+  model?: string;
+  city?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minYear?: number;
+  maxYear?: number;
+  maxMileage?: number;
+  userIntent?: UserIntent;
+  confidence: Record<string, number>;
+}
+
 export interface SearchCriteria {
   carrosserie: string | null;
   motorisation: string | null;
@@ -16,7 +37,11 @@ export interface SearchCriteria {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-const CARROSSERIES: Record<string, string> = {
+// ═══════════════════════════════════════════════════════════════════
+// DICTIONARIES — Centralized, multi-language (FR / Darija / Arabic)
+// ═══════════════════════════════════════════════════════════════════
+
+const CARROSSERIES: Record<string, BodyType> = {
   suv: "SUV",
   "4x4": "SUV",
   berline: "Berline",
@@ -32,38 +57,47 @@ const CARROSSERIES: Record<string, string> = {
   van: "Utilitaire",
   familiale: "Monospace",
   "famille": "Monospace",
+  "famiya": "Monospace",
+  "ttomobil dial l3a2ila": "Monospace",
   "ربع": "SUV",
   "كاروسة": "Berline",
   "مدينة": "Citadine",
   "سغرية": "Citadine",
   "سخة": "Citadine",
   "صغيرة": "Citadine",
+  "டوموبيل صغيرة": "Citadine",
 };
 
-const FUELS: Record<string, string> = {
+const FUELS: Record<string, FuelType> = {
   diesel: "Diesel",
-  essence: "Essence",
-  hybride: "Hybride",
-  electrique: "Electrique",
-  "électrique": "Electrique",
-  gnv: "GNV",
-  gpl: "GPL",
+  gasoil: "Diesel",
+  gazoil: "Diesel",
+  mazout: "Diesel",
   "مازوت": "Diesel",
   "مازوط": "Diesel",
   "كازوال": "Diesel",
   "ديزل": "Diesel",
   "ديزيل": "Diesel",
+  "dzl": "Diesel",
+  essence: "Essence",
   "كاز": "Essence",
+  "газ": "Essence",
+  hybride: "Hybride",
   "هجين": "Hybride",
-  "بطارية": "Electrique",
+  "هجينة": "Hybride",
+  electrique: "Electrique",
+  "électrique": "Electrique",
   "كهرباء": "Electrique",
-  gasoil: "Diesel",
-  gazoil: "Diesel",
-  mazout: "Diesel",
+  "بطارية": "Electrique",
+  "طوموبيل كهرباء": "Electrique",
+  gnv: "GNV",
+  gpl: "GPL",
 };
 
-const TRANSMISSIONS: Record<string, string> = {
+const TRANSMISSIONS: Record<string, TransmissionType> = {
   manuelle: "Manuelle",
+  "boite manuelle": "Manuelle",
+  "boîte manuelle": "Manuelle",
   automatique: "Automatique",
   auto: "Automatique",
   "boite auto": "Automatique",
@@ -73,6 +107,7 @@ const TRANSMISSIONS: Record<string, string> = {
   "ماتيك": "Automatique",
   "اليدوي": "Manuelle",
   "يدوي": "Manuelle",
+  "طوموبيل يدوي": "Manuelle",
   bva: "Automatique",
   bvm: "Manuelle",
 };
@@ -116,29 +151,34 @@ const CITIES = [
   "طنجة", "أكادير", "مكناس", "وجدة", "تطوان",
 ];
 
-const INTENT_KEYWORDS: Record<string, string[]> = {
-  familial: ["famille", "familial", "familiale", "enfant", "enfants", "bebe", "pratique", "familiale", "عائلة", "اولاد", "دراري", "famiya"],
-  sportif: ["sport", "sportif", "sportive", "puissant", "vitesse", "performance", "سريع", "قوي"],
-  economique: ["economique", "petit budget", "abordable", "pas cher", "moins cher", "rkhis", "رخيص", "رخص", "اقتصادي"],
-  confort: ["confort", "confortable", "luxueux", "luxe", "premium", "مرتاح", "فخم", "راحة"],
-  ville: ["ville", "urbain", "urbaine", "parking", "stationnement", "مدينة"],
-  route: ["autoroute", "route", "longue distance", "voyage", "سفر", "طريق"],
-  tout_terrain: ["tout-terrain", "tout terrain", "piste", "chemin", "offroad", "وعر"],
+const INTENT_KEYWORDS: Record<UserIntent, string[]> = {
+  family: ["famille", "familial", "familiale", "enfant", "enfants", "bebe", "pratique", "famiya", "عائلة", "اولاد", "دراري", "dial l3a2ila", "3a2ila"],
+  sport: ["sport", "sportif", "sportive", "puissant", "vitesse", "performance", "سريع", "قوي", "quick"],
+  economic: ["economique", "petit budget", "abordable", "pas cher", "moins cher", "rkhis", "رخيص", "رخص", "اقتصادي", "s9iya"],
+  comfort: ["confort", "confortable", "luxueux", "luxe", "premium", "مرتاح", "فخم", "راحة", "m3arfa"],
+  city: ["ville", "urbain", "urbaine", "parking", "stationnement", "مدينة", "madina", "ville"],
+  road: ["autoroute", "route", "longue distance", "voyage", "سفر", "طريق", "sfer"],
+  offroad: ["tout-terrain", "tout terrain", "piste", "chemin", "offroad", "وعر", "tri9", "l3robia"],
 };
 
 const NEGATION_PATTERNS: Array<{ pattern: RegExp; field: keyof SearchCriteria; value: null }> = [
-  { pattern: /(?:pas|non|sans|no|without|لا|ما)\s*(?:de\s+|d\s+|du\s+)?diesel|(?:pas|non)\s*(?:de\s+|d\s+)?d[ée]zel|ما\s*بغيتش\s*ديزل|ما\s*بغيت\s*ديزيل|بلا\s*ديزل|sans\s*diesel/i, field: "motorisation", value: null },
-  { pattern: /(?:pas|non|sans|no|without|لا|ما)\s*(?:de\s+|d\s+|du\s+)?essence|(?:pas|non)\s*(?:de\s+|d\s+)?essanse|ما\s*بغيتش\s*كاز|ما\s*بغيت\s*كاز|بلا\s*كاز|sans\s*essence/i, field: "motorisation", value: null },
+  { pattern: /(?:pas|non|sans|no|without|لا|ما)\s*(?:de\s+|d\s+|du\s+)?diesel|(?:pas|non)\s*(?:de\s+|d\s+)?d[ée]zel|ما\s*بغيتش\s*ديزل|ما\s*بغيت\s*ديزيل|بلا\s*ديزل|sans\s*diesel|bghit\s+bla\s+dzl/i, field: "motorisation", value: null },
+  { pattern: /(?:pas|non|sans|no|without|لا|ما)\s*(?:de\s+|d\s+|du\s+)?essence|(?:pas|non)\s*(?:de\s+|d\s+)?essanse|ما\s*بغيتش\s*كاز|ما\s*بغيت\s*كاز|بلا\s*كاز|sans\s*essence|bghit\s+bla\s+kaz/i, field: "motorisation", value: null },
   { pattern: /(?:pas|non|sans|no|without|لا|ما)\s*(?:de\s+|d\s+|du\s+)?suv|ما\s*بغيتش\s*ربع|بلا\s*suv|sans\s*suv/i, field: "carrosserie", value: null },
   { pattern: /(?:pas|non|sans|no|without|لا|ما)\s*(?:de\s+|d\s+)?automatique|ما\s*بغيتش\s*اوتوماتيك|بلا\s*auto|sans\s*auto/i, field: "transmission", value: null },
 ];
+
+// ═══════════════════════════════════════════════════════════════════
+// TEXT NORMALIZATION
+// ═══════════════════════════════════════════════════════════════════
 
 function normalizeText(text: string): string {
   const arabicDigits: Record<string, string> = {
     "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4", "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
     "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4", "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9",
   };
-  return text
+
+  let result = text
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -146,6 +186,33 @@ function normalizeText(text: string): string {
     .replace(/[^\w\s\d\u0600-\u06FF\u0400-\u04FF]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+  // Darija phonetic normalization
+  result = result
+    .replace(/\bbghit\b/g, "bghit")
+    .replace(/\bbghina\b/g, "bghina")
+    .replace(/\bkayn\b/g, "kayn")
+    .replace(/\bwach\b/g, "wach")
+    .replace(/\bchhal\b/g, "chhal")
+    .replace(/\bdial\b/g, "dial")
+    .replace(/\bdyal\b/g, "dial")
+    .replace(/\bfamiya\b/g, "famille")
+    .replace(/\brkhis\b/g, "pas cher")
+    .replace(/\bmazot\b/g, "diesel")
+    .replace(/\btomobil\b/g, "voiture")
+    .replace(/\b3a2ila\b/g, "famille")
+    .replace(/\bl3a2ila\b/g, "famille")
+    .replace(/\bmadina\b/g, "ville")
+    .replace(/\bsfer\b/g, "voyage")
+    .replace(/\bl3robia\b/g, "offroad")
+    .replace(/\btri9\b/g, "route")
+    .replace(/\bm3arfa\b/g, "premium")
+    .replace(/\bs9iya\b/g, "economique")
+    .replace(/\bbla\b/g, "sans")
+    .replace(/\bdzl\b/g, "diesel")
+    .replace(/\bkaz\b/g, "essence");
+
+  return result;
 }
 
 function hasKeyword(text: string, key: string): boolean {
@@ -153,31 +220,23 @@ function hasKeyword(text: string, key: string): boolean {
   return new RegExp(`(^|[^a-z0-9])${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`).test(text);
 }
 
-// --- Moroccan price normalization ---
-// "20 million" / "20 mlyon" / "20M" / "20 m" / "20 مليون" → 200000
-// "5 milion" → 50000
-// "200k" → 200000
+// ═══════════════════════════════════════════════════════════════════
+// MOROCCAN PRICE NORMALIZATION
+// ═══════════════════════════════════════════════════════════════════
+
 function normalizeMoroccanPrice(raw: string): number | null {
   const text = raw.toLowerCase().trim();
 
-  // Pattern: X million / X millions / X mlyon / X M / X m / X مليون / X مليونة
   const millionMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(?:million|millions|mlyon|mlyons|milio?ns?|m\b|M\b| مليون| مليونة| مليون سنتيم)/i);
   if (millionMatch) {
     const val = parseFloat(millionMatch[1].replace(",", "."));
-    if (val >= 0.5 && val <= 1000) {
-      // In Moroccan auto context: 20 million = 20 * 10000 = 200000 DH
-      // (1 million = 10000 DH in everyday Moroccan pricing)
-      return Math.round(val * 10000);
-    }
+    if (val >= 0.5 && val <= 1000) return Math.round(val * 10000);
   }
 
-  // Pattern: Xk / X k DH
   const kMatch = text.match(/(\d+(?:[.,]\d+)?)\s*k(?:\s*(?:dh|mad|dirhams?))?/i);
   if (kMatch) {
     const val = parseFloat(kMatch[1].replace(",", "."));
-    if (val >= 5 && val <= 2000) {
-      return Math.round(val * 1000);
-    }
+    if (val >= 5 && val <= 2000) return Math.round(val * 1000);
   }
 
   return null;
@@ -188,14 +247,12 @@ function extractBudget(text: string): { min: number | null; max: number | null; 
   let max: number | null = null;
   let tolerance = 0.15;
 
-  // 1. "autour de X"
   const aroundMatch = text.match(/autour\s+d[e']\s*(\d[\d\s]*\d)\s*(dh)?/i);
   if (aroundMatch) {
     const val = parseInt(aroundMatch[1].replace(/\s/g, ""));
     if (val >= 10000 && val <= 5000000) { max = Math.round(val * 1.2); min = Math.round(val * 0.8); tolerance = 0.2; }
   }
 
-  // 2. "entre X et Y"
   if (min === null) {
     const rangeMatch = text.match(/entre\s+(\d[\d\s]*\d)\s*(?:et|a|à)\s+(\d[\d\s]*\d)\s*(dh)?/i);
     if (rangeMatch) {
@@ -205,19 +262,16 @@ function extractBudget(text: string): { min: number | null; max: number | null; 
     }
   }
 
-  // 3. "sous/moins de/max X"
   if (min === null) {
     const underMatch = text.match(/(?:sous|moins de|max|maximum)\s+(\d[\d\s]*\d)\s*(dh)?/i);
     if (underMatch) { const val = parseInt(underMatch[1].replace(/\s/g, "")); if (val >= 10000 && val <= 5000000) max = val; }
   }
 
-  // 4. "plus de/min X"
   if (min === null) {
     const aboveMatch = text.match(/(?:plus de|au-dessus de|min|minimum|a partir de)\s+(\d[\d\s]*\d)\s*(dh)?/i);
     if (aboveMatch) { const val = parseInt(aboveMatch[1].replace(/\s/g, "")); if (val >= 10000 && val <= 5000000) min = val; }
   }
 
-  // 5. Moroccan normalization: 20 million, 200k, 5 mlyon
   if (min === null && max === null) {
     const moroccanPrice = normalizeMoroccanPrice(text);
     if (moroccanPrice !== null) {
@@ -227,7 +281,6 @@ function extractBudget(text: string): { min: number | null; max: number | null; 
     }
   }
 
-  // 6. "X DH/MAD/درهم"
   if (min === null && max === null) {
     const budgetMatch = text.match(/(\d[\d\s]*\d)\s*(dh|mad|درهم|دهم)/i);
     if (budgetMatch) {
@@ -236,7 +289,6 @@ function extractBudget(text: string): { min: number | null; max: number | null; 
     }
   }
 
-  // 7. "ف X درهم" (Arabic)
   if (min === null && max === null) {
     const darMatch = text.match(/(?:ف|على)\s*(\d[\d\s]*\d)\s*(?:درهم|دهم|dh)?/i);
     if (darMatch) {
@@ -245,7 +297,6 @@ function extractBudget(text: string): { min: number | null; max: number | null; 
     }
   }
 
-  // 8. Bare number fallback (only if not a year and not already found)
   if (min === null && max === null) {
     const bareMatch = text.match(/(\d[\d\s]*\d)/);
     if (bareMatch) {
@@ -290,8 +341,6 @@ function extractKmMax(text: string): number | null {
   return null;
 }
 
-// --- Model extraction ---
-// After brand is found, look for known model names after the brand
 const KNOWN_MODELS: Record<string, string[]> = {
   "Dacia": ["Duster", "Sandero", "Logan", "Spring", "Jogger"],
   "Renault": ["Clio", "Captur", "Kadjar", "Koleos", "Megane", "Symbol", "Duster"],
@@ -322,44 +371,61 @@ const KNOWN_MODELS: Record<string, string[]> = {
 };
 
 function extractModel(text: string, brandCanonical: string | null): string | null {
-  if (!brandCanonical) return null;
-
-  const models = KNOWN_MODELS[brandCanonical];
-  if (!models) return null;
-
   const normalized = text.toLowerCase();
-  for (const model of models) {
-    const modelLower = model.toLowerCase();
-    if (normalized.includes(modelLower)) {
-      return model;
+
+  // Try brand-specific models first (higher confidence)
+  if (brandCanonical) {
+    const models = KNOWN_MODELS[brandCanonical];
+    if (models) {
+      for (const model of models) {
+        if (normalized.includes(model.toLowerCase())) return model;
+      }
+    }
+  }
+
+  // Fallback: scan all known models (for queries like just "RAV4")
+  for (const [, models] of Object.entries(KNOWN_MODELS)) {
+    for (const model of models) {
+      if (normalized.includes(model.toLowerCase())) return model;
     }
   }
 
   return null;
 }
 
-// --- Negation handling ---
 function applyNegations(text: string, criteria: SearchCriteria): SearchCriteria {
   const result = { ...criteria };
   for (const negation of NEGATION_PATTERNS) {
     if (negation.pattern.test(text)) {
-      (result as any)[negation.field] = negation.value;
+      if (negation.field === "motorisation") {
+        const isDieselNegation = /diesel|d[ée]zel|ديزل|ديزيل|dzl|mazot|mazout|مازوت|مازوط|كازوال/i.test(text);
+        const isEssenceNegation = /(?:pas|non|sans|no|without|لا|ما|بلا)\s*(?:de\s+|d\s+)?(?:essence|كاز|كاز)|sans\s*essence|bghit\s+bla\s+kaz/i.test(text);
+        if (isDieselNegation && result.motorisation === "Diesel") {
+          result.motorisation = null;
+        } else if (isEssenceNegation && result.motorisation === "Essence") {
+          result.motorisation = null;
+        } else if (!isDieselNegation && !isEssenceNegation) {
+          result.motorisation = null;
+        }
+      } else {
+        (result as any)[negation.field] = negation.value;
+      }
     }
   }
   return result;
 }
 
-// --- Correction detection ---
-// "non pas diesel, essence" → replaces fuel
-// "finalement 250k" → replaces budget
-// "pas Casa, Rabat" → replaces city
+// ═══════════════════════════════════════════════════════════════════
+// CORRECTION DETECTION
+// ═══════════════════════════════════════════════════════════════════
+
 function detectCorrection(text: string): { field: string; value: string | null } | null {
   const lower = text.toLowerCase().trim();
 
-  // "pas [X], [Y]" / "non [X], [Y]" / "ma [X], [Y]"
   const correctionPatterns = [
-    /(?:pas|non|ma|لا)\s+(?:de\s+|d\s+)?(\w+)\s*[,.]?\s*(\w+)/i,
-    /(?:finalement|finalement|au final)\s+(.+)/i,
+    /(?:pas|non|ma|لا|bghit\s+bla)\s+(?:de\s+|d\s+)?(\w+)\s*[,.]?\s*(\w+)/i,
+    /(?:finalement|au final)\s+(.+)/i,
+    /(?:en fait|en realite)\s+(.+)/i,
   ];
 
   for (const pattern of correctionPatterns) {
@@ -372,7 +438,10 @@ function detectCorrection(text: string): { field: string; value: string | null }
   return null;
 }
 
-// --- Main parser ---
+// ═══════════════════════════════════════════════════════════════════
+// MAIN PARSER — Single message
+// ═══════════════════════════════════════════════════════════════════
+
 export function parseQuery(query: string): SearchCriteria {
   const normalized = normalizeText(query);
   const originalLower = query.toLowerCase().trim();
@@ -384,7 +453,7 @@ export function parseQuery(query: string): SearchCriteria {
 
   let motorisation: string | null = null;
   for (const [key, value] of Object.entries(FUELS)) {
-    if (normalized.includes(key)) { motorisation = value; break; }
+    if (normalized.includes(key)) { motorisation = value; }
   }
 
   let transmission: string | null = null;
@@ -423,14 +492,78 @@ export function parseQuery(query: string): SearchCriteria {
     ville, anneeMin, anneeMax, kmMax, intent,
   };
 
-  // Apply negations AFTER extraction (overrides)
   criteria = applyNegations(originalLower, criteria);
 
   return criteria;
 }
 
-// --- Criteria diff for corrections ---
-// Returns only the fields that changed compared to previous criteria
+// ═══════════════════════════════════════════════════════════════════
+// PROGRESSIVE SEARCH — Merge new message into existing criteria
+// ═══════════════════════════════════════════════════════════════════
+
+export function mergeSearchIntent(previous: SearchIntent, newMessage: string): SearchIntent {
+  const parsed = parseQuery(newMessage);
+  const confidence = { ...previous.confidence };
+
+  const result: SearchIntent = { ...previous };
+
+  if (parsed.motorisation) {
+    result.fuel = parsed.motorisation as FuelType;
+    confidence.fuel = 0.9;
+  }
+  if (parsed.carrosserie) {
+    result.bodyType = parsed.carrosserie as BodyType;
+    confidence.bodyType = 0.85;
+  }
+  if (parsed.transmission) {
+    result.transmission = parsed.transmission as TransmissionType;
+    confidence.transmission = 0.9;
+  }
+  if (parsed.marque) {
+    result.brand = parsed.marque;
+    confidence.brand = 0.95;
+  }
+  if (parsed.modele) {
+    result.model = parsed.modele;
+    confidence.model = 0.95;
+  }
+  if (parsed.ville) {
+    result.city = parsed.ville;
+    confidence.city = 0.9;
+  }
+  if (parsed.budgetMax !== null) {
+    result.maxPrice = parsed.budgetMax;
+    confidence.maxPrice = 0.85;
+  }
+  if (parsed.budgetMin !== null) {
+    result.minPrice = parsed.budgetMin;
+    confidence.minPrice = 0.85;
+  }
+  if (parsed.anneeMin !== null) {
+    result.minYear = parsed.anneeMin;
+    confidence.minYear = 0.9;
+  }
+  if (parsed.anneeMax !== null) {
+    result.maxYear = parsed.anneeMax;
+    confidence.maxYear = 0.9;
+  }
+  if (parsed.kmMax !== null) {
+    result.maxMileage = parsed.kmMax;
+    confidence.maxMileage = 0.85;
+  }
+  if (parsed.intent.length > 0) {
+    result.userIntent = parsed.intent[0] as UserIntent;
+    confidence.userIntent = 0.8;
+  }
+
+  result.confidence = confidence;
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CRITERIA DIFF — For correction handling
+// ═══════════════════════════════════════════════════════════════════
+
 export function diffCriteria(prev: SearchCriteria, next: SearchCriteria): Partial<SearchCriteria> {
   const changes: Partial<SearchCriteria> = {};
   const fields: (keyof SearchCriteria)[] = [
@@ -444,7 +577,6 @@ export function diffCriteria(prev: SearchCriteria, next: SearchCriteria): Partia
     }
   }
 
-  // Budget is special: compare min/max separately
   if (next.budgetMax !== null && next.budgetMax !== prev.budgetMax) {
     changes.budgetMax = next.budgetMax;
   }
@@ -452,11 +584,38 @@ export function diffCriteria(prev: SearchCriteria, next: SearchCriteria): Partia
     changes.budgetMin = next.budgetMin;
   }
 
-  // Intent: only report new intents
   const newIntents = next.intent.filter((i) => !prev.intent.includes(i));
   if (newIntents.length > 0) {
     changes.intent = newIntents;
   }
 
   return changes;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INTENT TO CRITERIA — Convert SearchIntent to API-compatible params
+// ═══════════════════════════════════════════════════════════════════
+
+export function intentToSearchParams(intent: SearchIntent): Record<string, string | number | undefined> {
+  const fuelMap: Record<string, string> = {
+    Diesel: "Diesel", Essence: "Essence", Hybride: "Hybride",
+    Electrique: "Electrique", GNV: "GNV", GPL: "GPL",
+  };
+  const bodyMap: Record<string, string> = {
+    SUV: "SUV", Berline: "Berline", Citadine: "Citadine",
+    Compacte: "Compacte", Utilitaire: "Utilitaire", Crossover: "Crossover",
+    Break: "Break", Coupe: "Coupe", Cabriolet: "Cabriolet", Monospace: "Monospace",
+  };
+
+  return {
+    fuel: intent.fuel ? fuelMap[intent.fuel] || intent.fuel : undefined,
+    body_type: intent.bodyType ? bodyMap[intent.bodyType] || intent.bodyType : undefined,
+    make: intent.brand || undefined,
+    model: intent.model || undefined,
+    city: intent.city || undefined,
+    min_price: intent.minPrice || undefined,
+    max_price: intent.maxPrice || undefined,
+    min_year: intent.minYear || undefined,
+    max_km: intent.maxMileage || undefined,
+  };
 }

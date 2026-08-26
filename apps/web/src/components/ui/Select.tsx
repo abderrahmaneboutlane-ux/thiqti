@@ -24,35 +24,28 @@ export default function Select({
   return (
     <div className="w-full">
       {label && (
-        <label className="mb-1.5 block text-xs font-medium text-gray-400">
-          {label}
-        </label>
+        <label className="label">{label}</label>
       )}
       <select
-        className={`w-full rounded-xl border bg-white/5 px-4 py-2.5 text-sm text-white transition-all focus:outline-none focus:ring-2 ${
-          error
-            ? "border-red-500/50 focus:ring-red-500/30"
-            : "border-white/10 focus:border-primary/50 focus:ring-primary/30"
+        className={`input appearance-none bg-no-repeat bg-right pr-10 ${
+          error ? "input-error" : ""
         } ${className}`}
         {...props}
       >
         {placeholder && (
-          <option value="" className="bg-dark-800 text-gray-400">
-            {placeholder}
-          </option>
+          <option value="">{placeholder}</option>
         )}
         {options.map((opt) => (
           <option
             key={opt.value}
             value={opt.value}
             disabled={opt.disabled}
-            className="bg-dark-800 text-white"
           >
             {opt.label}
           </option>
         ))}
       </select>
-      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-danger-600">{error}</p>}
     </div>
   );
 }

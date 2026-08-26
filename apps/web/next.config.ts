@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "voiture.ma" },
       { protocol: "https", hostname: "www.siaracash.com" },
       { protocol: "https", hostname: "cdn.imagin.studio" },
+      { protocol: "https", hostname: "loremflickr.com" },
+      { protocol: "https", hostname: "live.staticflickr.com" },
     ],
   },
 };

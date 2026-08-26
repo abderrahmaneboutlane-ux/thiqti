@@ -205,7 +205,7 @@ export default function AppShell({ sidebar = true, children }: AppShellProps) {
             <SidebarInner />
           </aside>
 
-          <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+          <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
             <Brand />
             <Button variant="ghost" size="sm" onClick={() => setOpen(true)} aria-label="Ouvrir le menu">
               <Menu className="h-5 w-5" />

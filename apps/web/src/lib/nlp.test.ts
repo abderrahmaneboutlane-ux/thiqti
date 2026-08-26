@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseQuery } from "./nlp";
+import { parseQuery, mergeSearchIntent, diffCriteria, intentToSearchParams, type SearchIntent } from "./nlp";
 
 describe("parseQuery - Extraction de critères explicites", () => {
   it("extrait le type de carrosserie SUV", () => {
@@ -106,32 +106,32 @@ describe("parseQuery - Extraction année et km", () => {
 describe("parseQuery - Détection d'intention", () => {
   it("détecte l'intention familiale", () => {
     const result = parseQuery("Pour la famille");
-    expect(result.intent).toContain("familial");
+    expect(result.intent).toContain("family");
   });
 
   it("détecte l'intention économique", () => {
     const result = parseQuery("Pas cher, petit budget");
-    expect(result.intent).toContain("economique");
+    expect(result.intent).toContain("economic");
   });
 
   it("détecte l'intention confort", () => {
     const result = parseQuery("Confortable et luxe");
-    expect(result.intent).toContain("confort");
+    expect(result.intent).toContain("comfort");
   });
 
   it("détecte l'intention sportive", () => {
     const result = parseQuery("Puissant et performant");
-    expect(result.intent).toContain("sportif");
+    expect(result.intent).toContain("sport");
   });
 
   it("détecte l'intention ville", () => {
     const result = parseQuery("Pour la ville, parking facile");
-    expect(result.intent).toContain("ville");
+    expect(result.intent).toContain("city");
   });
 
   it("détecte l'intention tout-terrain", () => {
     const result = parseQuery("Véhicule tout-terrain");
-    expect(result.intent).toContain("tout_terrain");
+    expect(result.intent).toContain("offroad");
   });
 });
 
@@ -143,8 +143,8 @@ describe("parseQuery - Requête complète (cas de référence)", () => {
     expect(result.budgetMin).not.toBeNull();
     expect(result.budgetMax).not.toBeNull();
     expect(result.transmission).toBe("Automatique");
-    expect(result.intent).toContain("familial");
-    expect(result.intent).toContain("confort");
+    expect(result.intent).toContain("family");
+    expect(result.intent).toContain("comfort");
   });
 });
 
@@ -206,7 +206,7 @@ describe("parseQuery - Darija / Arabe", () => {
   it("comprend 'famille' en darija", () => {
     const result = parseQuery("bghit voiture pour la famille diesel");
     expect(result.motorisation).toBe("Diesel");
-    expect(result.intent).toContain("familial");
+    expect(result.intent).toContain("family");
   });
 
   it("comprend la requête complète darija-français mixte", () => {
@@ -227,6 +227,28 @@ describe("parseQuery - Darija / Arabe", () => {
     const result = parseQuery("سيارة ديزل");
     expect(result.motorisation).toBe("Diesel");
   });
+
+  it("comprend 'bghit diesel famille max 20 milion'", () => {
+    const result = parseQuery("bghit diesel famille max 20 milion");
+    expect(result.motorisation).toBe("Diesel");
+    expect(result.intent).toContain("family");
+    expect(result.budgetMax).toBe(200000);
+  });
+
+  it("comprend 'ما بغيتش ديزل، بغيت essence'", () => {
+    const result = parseQuery("ما بغيتش ديزل، بغيت essence");
+    expect(result.motorisation).toBe("Essence");
+  });
+
+  it("comprend 'finalement 250k'", () => {
+    const result = parseQuery("finalement 250k");
+    expect(result.budgetMax).toBe(250000);
+  });
+
+  it("comprend 'pas Casa, Rabat'", () => {
+    const result = parseQuery("pas Casa, Rabat");
+    expect(result.ville).toBe("Rabat");
+  });
 });
 
 describe("parseQuery - Negation", () => {
@@ -236,7 +258,6 @@ describe("parseQuery - Negation", () => {
   });
 
   it("comprend 'non pas diesel, essence' → essence détecté d'abord, puis effacé par neg", () => {
-    // "non pas diesel" → neg pattern clears fuel, but essence is not in the phrase
     const result = parseQuery("pas de diesel");
     expect(result.motorisation).toBeNull();
   });
@@ -321,5 +342,98 @@ describe("parseQuery - Prix marocains", () => {
     const result = parseQuery("SUV 20M");
     expect(result.budgetMax).toBe(200000);
     expect(result.carrosserie).toBe("SUV");
+  });
+});
+
+describe("mergeSearchIntent - Recherche progressive", () => {
+  const emptyIntent: SearchIntent = { confidence: {} };
+
+  it("enrichit un intent vide avec diesel", () => {
+    const result = mergeSearchIntent(emptyIntent, "je veux une voiture diesel");
+    expect(result.fuel).toBe("Diesel");
+    expect(result.confidence.fuel).toBe(0.9);
+  });
+
+  it("enrichit un intent avec famille + diesel", () => {
+    const result = mergeSearchIntent(emptyIntent, "diesel famille budget 20 million");
+    expect(result.fuel).toBe("Diesel");
+    expect(result.userIntent).toBe("family");
+    expect(result.maxPrice).toBe(200000);
+  });
+
+  it("conserve les critères précédents et ajoute le nouveau", () => {
+    const prev: SearchIntent = { fuel: "Diesel", confidence: { fuel: 0.9 } };
+    const result = mergeSearchIntent(prev, "familiale Casablanca");
+    expect(result.fuel).toBe("Diesel");
+    expect(result.city).toBe("Casablanca");
+    expect(result.userIntent).toBe("family");
+  });
+
+  it("remplace un critère existant quand un nouveau est fourni", () => {
+    const prev: SearchIntent = { fuel: "Diesel", city: "Casa", confidence: { fuel: 0.9, city: 0.9 } };
+    const result = mergeSearchIntent(prev, "pas Casa, Rabat");
+    expect(result.fuel).toBe("Diesel");
+    expect(result.city).toBe("Rabat");
+  });
+
+  it("enrichit avec une marque", () => {
+    const result = mergeSearchIntent(emptyIntent, "Toyota hybride");
+    expect(result.brand).toBe("Toyota");
+    expect(result.fuel).toBe("Hybride");
+  });
+
+  it("enrichit avec un modèle", () => {
+    const prev: SearchIntent = { brand: "Toyota", confidence: { brand: 0.9 } };
+    const result = mergeSearchIntent(prev, "RAV4");
+    expect(result.model).toBe("RAV4");
+  });
+});
+
+describe("diffCriteria - Détection de changements", () => {
+  it("détecte un changement de motorisation", () => {
+    const prev = parseQuery("diesel");
+    const next = parseQuery("essence");
+    const changes = diffCriteria(prev, next);
+    expect(changes.motorisation).toBe("Essence");
+  });
+
+  it("détecte un changement de budget", () => {
+    const prev = parseQuery("max 200000");
+    const next = parseQuery("max 300000");
+    const changes = diffCriteria(prev, next);
+    expect(changes.budgetMax).toBe(300000);
+  });
+
+  it("ne retourne rien si aucun changement", () => {
+    const prev = parseQuery("diesel");
+    const next = parseQuery("diesel");
+    const changes = diffCriteria(prev, next);
+    expect(Object.keys(changes)).toHaveLength(0);
+  });
+});
+
+describe("intentToSearchParams - Conversion API", () => {
+  it("convertit un intent complet en paramètres API", () => {
+    const intent: SearchIntent = {
+      fuel: "Diesel",
+      bodyType: "SUV",
+      brand: "Toyota",
+      city: "Casablanca",
+      maxPrice: 200000,
+      confidence: {},
+    };
+    const params = intentToSearchParams(intent);
+    expect(params.fuel).toBe("Diesel");
+    expect(params.body_type).toBe("SUV");
+    expect(params.make).toBe("Toyota");
+    expect(params.city).toBe("Casablanca");
+    expect(params.max_price).toBe(200000);
+  });
+
+  it("ignore les champs undefined", () => {
+    const intent: SearchIntent = { fuel: "Diesel", confidence: {} };
+    const params = intentToSearchParams(intent);
+    expect(params.body_type).toBeUndefined();
+    expect(params.make).toBeUndefined();
   });
 });

@@ -85,6 +85,7 @@ export default function ResultsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [previewCar, setPreviewCar] = useState<CarListing | null>(null);
   const [refineOpen, setRefineOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [refine, setRefine] = useState({
     carrosserie: "",
@@ -307,9 +308,19 @@ export default function ResultsPage() {
           )}
         </div>
 
-        <div className="flex flex-col gap-8 lg:flex-row">
-          {/* ── Sidebar ───────────────────────────────────────── */}
-          <aside className="w-full shrink-0 space-y-4 lg:w-72">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          {/* ── Mobile filter toggle button ──────────────────────── */}
+          <button
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="lg:hidden flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-elev-1 transition-colors hover:bg-brand-50 hover:text-brand-600"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {mobileFiltersOpen ? "Masquer les filtres" : "Filtrer les résultats"}
+            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileFiltersOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {/* ── Sidebar (hidden by default on mobile) ─────────────── */}
+          <aside className={`w-full shrink-0 space-y-4 lg:w-72 ${mobileFiltersOpen ? "block" : "hidden lg:block"}`}>
             {/* Search input */}
             <ScrollReveal delay={0}>
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-elev-1">
@@ -477,8 +488,8 @@ export default function ResultsPage() {
           {/* ── Results ────────────────────────────────────────── */}
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="hidden sm:flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white">
                   <BadgeCheck className="h-3 w-3" />
                 </div>
@@ -486,17 +497,17 @@ export default function ResultsPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Link href="/compare" className="btn-secondary btn-sm">
-                  <GitCompareArrows className="h-3.5 w-3.5" />Comparer
+                  <GitCompareArrows className="h-3.5 w-3.5" /><span className="hidden sm:inline">Comparer</span>
                 </Link>
                 <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); }} className="min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-elev-1 cursor-pointer outline-none focus:border-brand-500">
                   <option value="score_desc">Pertinence</option>
                   <option value="best_deal">Meilleure offre</option>
-                  <option value="price_asc">Prix croissant</option>
-                  <option value="price_desc">Prix décroissant</option>
+                  <option value="price_asc">Prix ↑</option>
+                  <option value="price_desc">Prix ↓</option>
                   <option value="year_desc">Plus récent</option>
                 </select>
-                {/* View toggle */}
-                <div className="flex rounded-xl border border-slate-200 bg-white p-0.5 shadow-elev-1">
+                {/* View toggle — hidden on mobile */}
+                <div className="hidden sm:flex rounded-xl border border-slate-200 bg-white p-0.5 shadow-elev-1">
                   <button
                     onClick={() => setView("grid")}
                     aria-label="Affichage en grille"
@@ -525,7 +536,7 @@ export default function ResultsPage() {
 
             {/* Content states */}
             {loading ? (
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
                   <motion.div
                     key={i}
@@ -567,7 +578,7 @@ export default function ResultsPage() {
               </div>
             ) : view === "grid" ? (
               /* ── Grid view ──────────────────────────────────── */
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {cars.map((v) => {
                   const rawPhone = (v.sellerPhone || "+212522669900").replace(/\s+/g, "");
                   const rawWhatsapp = (v.whatsappNumber || "212661001122").replace(/\D/g, "");
@@ -747,13 +758,13 @@ export default function ResultsPage() {
 
             {/* ── Pagination Controls ───────────────────────────── */}
             {!loading && cars.length > 0 && totalPages > 1 && (
-              <div className="mt-10 flex flex-col items-center gap-6 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md p-6 shadow-elev-1">
-                {/* Stats & Items per page */}
-                <div className="flex flex-wrap items-center justify-between w-full gap-4 text-xs text-slate-500 border-b border-slate-100 pb-4">
+              <div className="mt-8 flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md p-4 sm:p-6 shadow-elev-1">
+                {/* Stats — hidden on small mobile */}
+                <div className="hidden sm:flex flex-wrap items-center justify-between w-full gap-4 text-xs text-slate-500 border-b border-slate-100 pb-4">
                   <div>
                     Affichage de <span className="font-bold text-slate-800">{(page - 1) * limit + 1}</span> à{" "}
                     <span className="font-bold text-slate-800">{Math.min(page * limit, total)}</span> sur{" "}
-                    <span className="font-bold text-brand-600">{total.toLocaleString("fr-FR")}</span> véhicules disponibles
+                    <span className="font-bold text-brand-600">{total.toLocaleString("fr-FR")}</span> véhicules
                   </div>
                   <div className="flex items-center gap-2">
                     <span>Par page :</span>
@@ -783,74 +794,62 @@ export default function ResultsPage() {
                   </div>
                 </div>
 
-                {/* Numbered pagination */}
-                <div className="flex flex-wrap items-center justify-center gap-1.5">
-                  <button
-                    onClick={() => goToPage(1)}
-                    disabled={page <= 1}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
-                    title="Première page"
-                  >
-                    «
-                  </button>
+                {/* Simple prev/next on mobile, full pagination on desktop */}
+                <div className="flex w-full items-center justify-between sm:justify-center sm:gap-1.5">
                   <button
                     onClick={() => goToPage(page - 1)}
                     disabled={page <= 1}
-                    className="flex h-9 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
+                    className="flex h-10 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Précédent
+                    <span className="hidden sm:inline">Précédent</span>
+                    <span className="sm:hidden">←</span>
                   </button>
 
-                  {/* Page number buttons */}
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === totalPages || (p >= page - 2 && p <= page + 2))
-                    .reduce<(number | string)[]>((acc, p, idx, arr) => {
-                      if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
-                        acc.push("...");
-                      }
-                      acc.push(p);
-                      return acc;
-                    }, [])
-                    .map((item, idx) =>
-                      typeof item === "string" ? (
-                        <span key={`dots-${idx}`} className="px-2 text-xs text-slate-400">
-                          •••
-                        </span>
-                      ) : (
-                        <button
-                          key={item}
-                          onClick={() => goToPage(item)}
-                          className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-xs font-bold transition-all ${
-                            page === item
-                              ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-600/30"
-                              : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-600 shadow-xs"
-                          }`}
-                        >
-                          {item}
-                        </button>
-                      )
-                    )}
+                  <span className="text-xs font-semibold text-slate-500 sm:hidden">
+                    {page} / {totalPages}
+                  </span>
+
+                  {/* Page number buttons — desktop only */}
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((p) => p === 1 || p === totalPages || (p >= page - 2 && p <= page + 2))
+                      .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((item, idx) =>
+                        typeof item === "string" ? (
+                          <span key={`dots-${idx}`} className="px-1 text-xs text-slate-400">•••</span>
+                        ) : (
+                          <button
+                            key={item}
+                            onClick={() => goToPage(item)}
+                            className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-xs font-bold transition-all ${
+                              page === item
+                                ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-600/30"
+                                : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-600 shadow-xs"
+                            }`}
+                          >
+                            {item}
+                          </button>
+                        )
+                      )}
+                  </div>
 
                   <button
                     onClick={() => goToPage(page + 1)}
                     disabled={page >= totalPages}
-                    className="flex h-9 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
+                    className="flex h-10 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
                   >
-                    Suivant
+                    <span className="hidden sm:inline">Suivant</span>
+                    <span className="sm:hidden">→</span>
                     <ChevronRight className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => goToPage(totalPages)}
-                    disabled={page >= totalPages}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
-                    title="Dernière page"
-                  >
-                    »
                   </button>
                 </div>
 
-                {/* Load More Button for Infinite Expansion */}
+                {/* Load More Button */}
                 {page < totalPages && (
                   <button
                     onClick={loadMoreCars}

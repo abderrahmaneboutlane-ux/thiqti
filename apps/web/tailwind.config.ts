@@ -285,12 +285,15 @@ const config: Config = {
       },
 
       zIndex: {
+        base: "1",
         dropdown: "100",
         sticky: "200",
-        modal: "300",
-        popover: "400",
-        tooltip: "500",
-        toast: "600",
+        "nav-bottom": "400",
+        modal: "500",
+        overlay: "550",
+        popover: "600",
+        toast: "700",
+        tooltip: "800",
       },
 
       container: {

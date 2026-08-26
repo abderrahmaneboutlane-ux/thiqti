@@ -20,7 +20,7 @@ export default function MarketingNavbar() {
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <nav className="sticky top-0 z-50 w-full liquid-glass border-b border-slate-200">
+    <nav className="sticky top-0 z-50 w-full liquid-glass border-b border-slate-200" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center">
           <Logo size="sm" />

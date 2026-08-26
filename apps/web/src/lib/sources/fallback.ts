@@ -1,4 +1,5 @@
 import { UnifiedCar, generateId, computeScore } from "./types";
+import { getReliableFallbackImage } from "./imageValidator";
 
 // Autoevolution CDN is broken (hotlink protection returns empty body)
 // All fallback cars use CarIllustration SVG instead
@@ -130,13 +131,14 @@ const MOROCCAN_CARS: FallbackCar[] = [
 
 export function getFallbackCars(): UnifiedCar[] {
   return MOROCCAN_CARS.map((car) => {
+    const image = getReliableFallbackImage(car.make, car.model, car.year);
     return {
       ...car,
-      image: "",
+      image,
       id: generateId("fallback", car.make, car.model, car.year, car.km, car.price),
       score: computeScore(car.year, car.km, car.price),
       scrapedAt: new Date().toISOString(),
-      photos: [],
+      photos: [image],
       inventoryType: "used" as const,
       safety: null,
     };

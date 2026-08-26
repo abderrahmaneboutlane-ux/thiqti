@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import Image from "next/image";
 import CarIllustration from "./CarIllustration";
 
 interface CarImageProps {
@@ -89,14 +90,16 @@ export default function CarImage({ src, sources = [], alt, make, model, bodyType
 
   if (!fallbackFailed && all.length > 0 && index < all.length) {
     return (
-      <img
+      <Image
         key={all[index]}
         src={all[index]}
         alt={alt || `${make} ${model}`}
-        className={className}
+        fill
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        className={`object-cover ${className}`}
         onError={handleError}
-        loading="lazy"
-        decoding="async"
+        unoptimized
+        priority={false}
       />
     );
   }

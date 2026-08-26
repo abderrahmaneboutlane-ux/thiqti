@@ -5,12 +5,13 @@ import Link from "next/link";
 import {
   Fuel, Gauge, Send, Sparkles, ArrowRight, ShieldCheck,
   RefreshCw, Menu, X, Search, GitCompareArrows, User,
-  Trash2, MessageCircle, Plus, Pause,
+  Trash2, MessageCircle, Plus, Pause, Phone, MessageSquare,
 } from "lucide-react";
 import CarImage from "@/components/CarImage";
 import Logo from "@/components/Logo";
 import VoiceInput from "@/components/VoiceInput";
 import { addHistory, getHistory, clearHistory } from "@/lib/history";
+import { intentToSearchParams } from "@/lib/nlp";
 import VehicleDrawer from "./VehicleDrawer";
 import ComparisonPanel from "./ComparisonPanel";
 import MarkdownMessage from "./MarkdownMessage";
@@ -93,7 +94,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, results, searching]);
 
-  const fetchResults = useCallback(async (query: string) => {
+  const fetchResults = useCallback(async (query: string, intentParams?: Record<string, string | number | undefined>) => {
     setSearching(true);
     setThinkingPhase("analyse");
     // Animate through phases
@@ -102,6 +103,12 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
     try {
       const params = new URLSearchParams();
       if (query) params.set("q", query);
+      // Apply structured intent params when available
+      if (intentParams) {
+        for (const [k, v] of Object.entries(intentParams)) {
+          if (v !== undefined && v !== null) params.set(k, String(v));
+        }
+      }
       const res = await fetch(`/api/search?${params.toString()}`);
       if (!res.ok) throw new Error("Erreur reseau");
       const data = await res.json();
@@ -206,7 +213,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
       // Show quick replies
       if (data.quickReplies?.length) setQuickReplies(data.quickReplies);
 
-      // If a search was requested, fetch results
+      // If a search was requested, fetch results using intent params
       if (shouldSearch && data.criteria) {
         const c = data.criteria;
         const queryParts: string[] = [];
@@ -216,7 +223,20 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
         if (c.motorisation || c.fuel) queryParts.push(String(c.motorisation || c.fuel));
         if (c.ville || c.city) queryParts.push(String(c.ville || c.city));
         const query = queryParts.join(" ").trim();
-        if (query) await fetchResults(query);
+        // Use structured intent params for API search when available
+        const intentParams = Object.keys(c).length > 0
+          ? intentToSearchParams({
+              fuel: (c.motorisation || c.fuel) as any || undefined,
+              bodyType: (c.carrosserie || c.body) as any || undefined,
+              brand: (c.marque || c.brand) as string || undefined,
+              model: (c.modele || c.model) as string || undefined,
+              city: (c.ville || c.city) as string || undefined,
+              maxPrice: (c.budgetMax || c.budget_max) as number || undefined,
+              maxMileage: (c.kmMax || c.max_km) as number || undefined,
+              confidence: {},
+            })
+          : undefined;
+        if (query) await fetchResults(query, intentParams);
       }
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
@@ -253,7 +273,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
   const showWelcome = messages.length <= 1 && !results;
 
   const chatBody = (
-    <div className={`flex flex-col ${fullscreen ? "h-screen" : "h-[700px]"}`} role="region" aria-label="Assistant auto IA Thiqti">
+    <div className={`flex flex-col ${fullscreen ? "h-[100dvh]" : "h-[700px]"}`} style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} role="region" aria-label="Assistant auto IA Thiqti">
       {/* Top bar */}
       <header className="flex shrink min-w-0 items-center gap-2 border-b border-slate-200 bg-white/90 backdrop-blur-xl px-3 py-3.5 shadow-sm sm:gap-3 sm:px-5">
         {showSidebar && (
@@ -411,31 +431,55 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
                     <div className="space-y-3">
                       {visibleResults?.map((car) => (
                         <div key={car.id}
-                          className="group flex gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-brand-200 hover:shadow-elev-2 cursor-pointer shadow-elev-1"
+                          className="group flex flex-col sm:flex-row gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-brand-200 hover:shadow-elev-2 cursor-pointer shadow-elev-1"
                           onClick={() => handleSelectVehicle(car)}>
-                          <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                            <CarImage src={car.image} sources={car.photos} alt={car.title} make={car.make} model={car.model} bodyType={car.bodyType} className="h-full w-full object-cover transition group-hover:scale-105 duration-500" />
-                            <div className="absolute left-1.5 top-1.5"><InventoryBadge type={car.inventoryType} /></div>
-                            <div className="absolute right-1.5 top-1.5">
-                              <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${car.score >= 85 ? "bg-emerald-100 text-emerald-700" : car.score >= 70 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
-                                {car.score}
-                              </span>
+                          <div className="flex gap-3 flex-1 min-w-0">
+                            <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                              <CarImage src={car.image} sources={car.photos} alt={car.title} make={car.make} model={car.model} bodyType={car.bodyType} className="h-full w-full object-cover transition group-hover:scale-105 duration-500" />
+                              <div className="absolute left-1.5 top-1.5"><InventoryBadge type={car.inventoryType} /></div>
+                              <div className="absolute right-1.5 top-1.5">
+                                <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${car.score >= 85 ? "bg-emerald-100 text-emerald-700" : car.score >= 70 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
+                                  {car.score}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-1 flex-col min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <h4 className="truncate text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{car.title}</h4>
+                                {car.reputation?.verified && <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />}
+                              </div>
+                              <p className="mt-0.5 text-xs text-slate-500">{car.year} · {car.km.toLocaleString("fr-FR")} km · {car.fuel}</p>
+                              <div className="mt-auto flex items-center justify-between pt-1">
+                                <span className="text-base font-bold text-price-600">{car.priceFormatted}</span>
+                                <span className="text-[11px] text-slate-400">{car.city}</span>
+                              </div>
+                              <span className="mt-1 inline-block w-fit rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">{car.source}</span>
                             </div>
                           </div>
-                          <div className="flex flex-1 flex-col min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <h4 className="truncate text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{car.title}</h4>
-                              {car.reputation?.verified && <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />}
-                            </div>
-                            <p className="mt-0.5 text-xs text-slate-500">{car.year} · {car.km.toLocaleString("fr-FR")} km · {car.fuel}</p>
-                            <div className="mt-auto flex items-center justify-between pt-1">
-                              <span className="text-base font-bold text-price-600">{car.priceFormatted}</span>
-                              <span className="text-[11px] text-slate-400">{car.city}</span>
-                            </div>
-                            <span className="mt-1 inline-block w-fit rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">{car.source}</span>
+                          {/* Mobile CTAs — visible on small screens, hidden on desktop */}
+                          <div className="flex sm:hidden items-center gap-2 border-t border-slate-100 pt-2 -mx-1 px-1">
+                            {car.contact?.whatsappHref && (
+                              <a href={car.contact.whatsappHref} target="_blank" rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#2d7a4f] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#246640]">
+                                <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
+                              </a>
+                            )}
+                            {car.contact?.phoneHref && (
+                              <a href={car.contact.phoneHref}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-xs font-bold text-brand-700 transition hover:bg-brand-100">
+                                <Phone className="h-3.5 w-3.5" /> Appeler
+                              </a>
+                            )}
+                            <button onClick={(e) => { e.stopPropagation(); handleToggleCompare(car.id); }}
+                              className={`rounded-xl border p-2 text-xs font-bold transition ${compareIds.includes(car.id) ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 text-slate-500 hover:border-brand-600 hover:text-brand-600 bg-white"}`}>
+                              <GitCompareArrows className="h-3.5 w-3.5" />
+                            </button>
                           </div>
+                          {/* Desktop compare button — hidden on mobile */}
                           <button onClick={(e) => { e.stopPropagation(); handleToggleCompare(car.id); }}
-                            className={`self-start rounded-xl border p-2 text-xs font-bold transition ${compareIds.includes(car.id) ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 text-slate-500 hover:border-brand-600 hover:text-brand-600 bg-white"}`}>
+                            className={`hidden sm:flex self-start rounded-xl border p-2 text-xs font-bold transition ${compareIds.includes(car.id) ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 text-slate-500 hover:border-brand-600 hover:text-brand-600 bg-white"}`}>
                             <GitCompareArrows className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -478,8 +522,24 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
         )}
       </div>
 
-      {/* Input area */}
-      <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3.5 shadow-sm">
+      {/* Sticky lead capture bar — shown when results are displayed */}
+      {results && results.length > 0 && !searching && (
+        <div className="shrink-0 border-t border-brand-200 bg-brand-50 px-4 py-3 sm:hidden">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-brand-800">Besoin d&apos;aide pour choisir ?</p>
+              <p className="text-[10px] text-brand-600">Un conseiller vous rappelle sous 24h</p>
+            </div>
+            <Link href="/contact"
+              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-brand-700 active:scale-95">
+              <Phone className="h-3 w-3" /> Contact
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Input area — sticky bottom with safe-area for mobile */}
+      <div className="shrink-0 border-t border-slate-200 bg-white px-4 pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-3 shadow-sm">
         <div className="mx-auto w-full max-w-3xl flex gap-2 overflow-hidden">
           <div className="relative flex-1">
             <Send className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -489,7 +549,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(input); setInput(""); } }}
-              placeholder="Décrivez votre voiture idéale ou posez une question..."
+              placeholder="Décrivez votre voiture idéale..."
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-brand-600 focus:bg-white focus:ring-2 focus:ring-brand-500/10 focus-depth"
               disabled={streaming}
               aria-label="Votre message"
@@ -533,7 +593,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
   // ---- Sidebar layout ----
   if (showSidebar) {
     return (
-      <div className="flex h-screen overflow-hidden bg-slate-50">
+      <div className="flex h-[100dvh] overflow-hidden bg-slate-50" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] flex-col border-r border-slate-200 bg-white lg:flex" role="complementary" aria-label="Historique">
           <div className="border-b border-slate-200 px-5 py-5">
             <Link href="/" className="group flex items-center gap-3">
@@ -612,5 +672,5 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
     );
   }
 
-  return <div className="h-screen bg-slate-50">{chatBody}</div>;
+  return <div className="h-[100dvh] bg-slate-50">{chatBody}</div>;
 }

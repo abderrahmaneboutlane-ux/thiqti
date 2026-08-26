@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, FormEvent } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Fuel, Gauge, Calendar, ChevronLeft, Share2, CheckCircle2, MessageSquare, AlertTriangle, Clock, TrendingUp, TrendingDown, BadgeCheck, Globe, ExternalLink, Facebook, Instagram, Newspaper, Store, Eye, Phone, Calculator, CircleDollarSign, Car } from "lucide-react";
+import { MapPin, Fuel, Gauge, Calendar, ChevronLeft, Share2, CheckCircle2, MessageSquare, MessageCircle, AlertTriangle, Clock, TrendingUp, TrendingDown, BadgeCheck, Globe, ExternalLink, Facebook, Instagram, Newspaper, Store, Eye, Phone, Calculator, CircleDollarSign, Car } from "lucide-react";
 import CarImage from "@/components/CarImage";
 import SafetyBadge, { safetyLabelOf } from "@/components/SafetyBadge";
 import SellerContact from "@/components/SellerContact";
@@ -481,6 +481,37 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
               </ScrollReveal>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Sticky mobile CTA — visible only on small screens */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-xl px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:hidden">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-slate-900 truncate">{car.title}</p>
+            <p className="text-xs font-bold text-price-600">{car.priceFormatted}</p>
+          </div>
+          <a
+            href={car.contact?.whatsappHref || `https://wa.me/212522669900?text=${encodeURIComponent(`Bonjour, je suis intéressé par ${car.title} (${car.priceFormatted})`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#2d7a4f] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#246640] active:scale-95"
+          >
+            <MessageCircle className="h-4 w-4" />
+            WhatsApp
+          </a>
+          <a
+            href={car.contact?.phoneHref || `tel:${(car.contact?.phone || "+212 522 669 900").replace(/\s+/g, "")}`}
+            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50 px-3.5 py-2.5 text-xs font-bold text-brand-700 transition hover:bg-brand-100 active:scale-95"
+          >
+            <Phone className="h-4 w-4" />
+          </a>
+          <button
+            onClick={() => setFav(!fav)}
+            className={`flex shrink-0 items-center justify-center rounded-xl border p-2.5 transition ${fav ? "border-red-200 bg-red-50 text-red-500" : "border-slate-200 bg-white text-slate-400 hover:text-red-500"}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2} className={`h-4 w-4 ${fav ? "fill-red-500 text-red-500" : ""}`}><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
+          </button>
         </div>
       </div>
     </div>

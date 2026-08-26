@@ -35,7 +35,7 @@ export default function Pagination({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+        className="rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -44,7 +44,7 @@ export default function Pagination({
 
       {getPages().map((page, i) =>
         page === "..." ? (
-          <span key={`ellipsis-${i}`} className="px-2 text-gray-500">
+          <span key={`ellipsis-${i}`} className="px-2 text-slate-400">
             ...
           </span>
         ) : (
@@ -53,8 +53,8 @@ export default function Pagination({
             onClick={() => onPageChange(page)}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-all ${
               currentPage === page
-                ? "bg-primary/20 text-primary"
-                : "text-gray-400 hover:bg-white/5 hover:text-white"
+                ? "bg-brand-50 text-brand-600 ring-1 ring-brand-200"
+                : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
             }`}
           >
             {page}
@@ -65,7 +65,7 @@ export default function Pagination({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+        className="rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
