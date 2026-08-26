@@ -468,7 +468,8 @@ export default function HomePage() {
             <TiltCard key={cat.label} maxTilt={10} className="rounded-2xl">
               <Link
                 href={`/results?q=${encodeURIComponent(cat.label)}`}
-                className="group relative block overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-elev-1 transition hover:border-brand-300 hover:shadow-elev-3"
+                className="group relative block min-h-[44px] overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-elev-1 transition hover:border-brand-300 hover:shadow-elev-3"
+                aria-label={`${cat.label} — ${cat.count} véhicules`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} opacity-0 transition group-hover:opacity-[0.05]`} />
                 <div className="relative text-3xl">{cat.icon}</div>
@@ -493,7 +494,8 @@ export default function HomePage() {
             <Link
               key={brand}
               href={`/results?q=${encodeURIComponent(brand)}`}
-              className="rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-elev-1 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:text-brand-600 hover:shadow-elev-2"
+              className="min-h-[44px] rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-elev-1 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:text-brand-600 hover:shadow-elev-2"
+              aria-label={`Rechercher ${brand}`}
             >
               {brand}
             </Link>
@@ -709,7 +711,7 @@ export default function HomePage() {
       )}
 
       {/* ---- FOOTER ---- */}
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-200 bg-white" role="contentinfo">
         <div className="mx-auto max-w-7xl px-6 py-12">
           <div className="grid gap-8 md:grid-cols-4">
             <div>
@@ -718,7 +720,7 @@ export default function HomePage() {
                 La référence de l&apos;achat auto intelligent au Maroc.
               </p>
             </div>
-            <div>
+            <nav aria-label="Navigation principale">
               <h4 className="mb-3 text-sm font-bold text-slate-900">Navigation</h4>
               <div className="flex flex-col gap-2">
                 {[
@@ -731,7 +733,7 @@ export default function HomePage() {
                   <Link key={item.label} href={item.href} className="text-sm text-slate-500 hover:text-brand-600 transition">{item.label}</Link>
                 ))}
               </div>
-            </div>
+            </nav>
             <div>
               <h4 className="mb-3 text-sm font-bold text-slate-900">Catégories</h4>
               <div className="flex flex-col gap-2">

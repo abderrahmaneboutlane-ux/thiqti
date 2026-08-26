@@ -122,7 +122,7 @@ export default function FavoritesPage() {
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeFav(v.id); }}
                         aria-label="Supprimer des favoris"
-                        className="absolute right-2 top-2 z-10 rounded-xl bg-white/90 backdrop-blur-sm p-2 text-slate-400 hover:text-red-500 transition-colors shadow-sm"
+                        className="absolute right-2 top-2 z-10 min-h-[44px] min-w-[44px] rounded-xl bg-white/90 backdrop-blur-sm p-2 text-slate-400 hover:text-red-500 transition-colors shadow-sm flex items-center justify-center"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

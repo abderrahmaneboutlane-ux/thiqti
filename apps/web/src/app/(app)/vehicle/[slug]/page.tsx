@@ -168,16 +168,35 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
   }
 
   if (error) return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-      <AlertTriangle className="h-12 w-12 text-amber-500" />
-      <p className="text-slate-500">Vehicule introuvable</p>
-      <Link href="/results" className="btn-primary">Voir tous les resultats</Link>
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-6 px-6">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200">
+        <AlertTriangle className="h-8 w-8 text-amber-500" />
+      </div>
+      <div className="text-center">
+        <p className="text-lg font-bold text-slate-900">Véhicule introuvable</p>
+        <p className="mt-1 text-sm text-slate-500">Cette annonce n&apos;est peut-être plus disponible.</p>
+      </div>
+      <Link href="/results" className="btn-primary min-h-[44px] px-6">Voir tous les résultats</Link>
     </div>
   );
 
   if (!car) return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="animate-pulse text-slate-400">Chargement...</div>
+    <div className="min-h-[100dvh] bg-slate-50 px-6 py-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6 h-4 w-32 animate-pulse rounded-lg bg-slate-200" />
+        <div className="flex flex-col gap-8 lg:flex-row">
+          <div className="flex-1 space-y-4">
+            <div className="h-80 animate-pulse rounded-2xl bg-slate-200" />
+            <div className="flex gap-2">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-14 w-20 animate-pulse rounded-xl bg-slate-200" />)}</div>
+            <div className="h-32 animate-pulse rounded-2xl bg-slate-200" />
+          </div>
+          <div className="w-full space-y-4 lg:w-80">
+            <div className="h-24 animate-pulse rounded-2xl bg-slate-200" />
+            <div className="h-40 animate-pulse rounded-2xl bg-slate-200" />
+            <div className="h-32 animate-pulse rounded-2xl bg-slate-200" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -226,9 +245,9 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
                 )}
               </div>
               {car.photos && car.photos.length > 1 && (
-                <div className="flex gap-2 border-t border-slate-200 p-3 bg-slate-50/50">
+                <div className="flex gap-2 border-t border-slate-200 p-3 bg-slate-50/50" role="group" aria-label="Galerie photos">
                   {car.photos.slice(0, 5).map((photo, i) => (
-                    <button key={i} onClick={() => setMainImg(photo)} className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-xl transition ${photo === mainImg ? "ring-2 ring-brand-600 shadow-sm" : "opacity-70 hover:opacity-100"}`}>
+                    <button key={i} onClick={() => setMainImg(photo)} aria-label={`Photo ${i + 1}`} className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-xl transition ${photo === mainImg ? "ring-2 ring-brand-600 shadow-sm" : "opacity-70 hover:opacity-100"}`}>
                       <CarImage src={photo} sources={car.photos} alt={`${car.title} ${i + 1}`} make={car.make} model={car.model} bodyType={car.bodyType} className="h-full w-full object-cover" />
                     </button>
                   ))}
@@ -266,9 +285,9 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
 
             {/* Tabs */}
             <ScrollReveal delay={150}>
-              <div className="mt-6 flex gap-1.5 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-elev-1">
+              <div className="mt-6 flex gap-1.5 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-elev-1" role="tablist" aria-label="Détails du véhicule">
                 {(["specs", "reputation", "offers"] as const).map((tab) => (
-                  <button key={tab} onClick={() => setActiveTab(tab)} className={`relative flex-1 rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider transition ${activeTab === tab ? "text-white" : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"}`}>
+                  <button key={tab} role="tab" aria-selected={activeTab === tab} onClick={() => setActiveTab(tab)} className={`relative flex-1 rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider transition ${activeTab === tab ? "text-white" : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"}`}>
                     {activeTab === tab && (
                       <motion.div layoutId="vehicle-tab-bg" className="absolute inset-0 rounded-xl bg-brand-600 shadow-sm" transition={{ type: "spring", bounce: 0.2, duration: 0.5 }} />
                     )}
@@ -282,7 +301,7 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
             <ScrollReveal delay={200}>
               <div className="mt-6">
               {activeTab === "specs" && (
-                <div className="card p-6">
+                <div className="card p-6" role="tabpanel" aria-label="Caractéristiques">
                   <h2 className="mb-4 text-lg font-bold text-slate-900">Caracteristiques</h2>
                   <StaggerReveal className="grid grid-cols-2 gap-4 md:grid-cols-4" staggerMs={80}>
                     {[

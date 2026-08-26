@@ -23,8 +23,17 @@ import { type ChatMessage, type ChatCar } from "@/types";
 function InventoryBadge({ type }: { type?: string }) {
   if (!type) return null;
   return (
-        <span className={`rounded-lg px-2 py-1 text-xs font-semibold ${type === "new" ? "bg-sky-100 text-sky-700" : "bg-corporate/5 text-corporate"}`}>
+    <span className={`rounded-lg px-2 py-1 text-xs font-semibold ${type === "new" ? "bg-sky-100 text-sky-700" : "bg-corporate/5 text-corporate"}`}>
       {type === "new" ? "Neuf" : "Occasion"}
+    </span>
+  );
+}
+
+function MessageTimestamp() {
+  const now = new Date();
+  return (
+    <span className="mt-1 block text-[10px] text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">
+      {now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
     </span>
   );
 }
@@ -328,14 +337,17 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
             </p>
             <div className="mt-8 grid w-full max-w-lg grid-cols-2 gap-3">
               {[
-                { label: "🚙 SUV familial", desc: "Pour la famille à Casablanca", query: "SUV familial Casablanca" },
-                { label: "🚗 Citadine éco", desc: "Économique et fiable", query: "citadine economique moins de 150k" },
-                { label: "⚡ Électrique / Hybride", desc: "Faible consommation", query: "voiture hybride ou electrique au Maroc" },
-                { label: "🇲🇦 Bghit SUV mazot", desc: "Recherche naturelle en Darija", query: "bghit SUV mazot b 300 000 DH" },
+                { label: "SUV familial", desc: "Pour la famille à Casablanca", query: "SUV familial Casablanca", emoji: "🚙" },
+                { label: "Citadine éco", desc: "Économique et fiable", query: "citadine economique moins de 150k", emoji: "🚗" },
+                { label: "Électrique / Hybride", desc: "Faible consommation", query: "voiture hybride ou electrique au Maroc", emoji: "⚡" },
+                { label: "Bghit SUV mazot", desc: "Recherche naturelle en Darija", query: "bghit SUV mazot b 300 000 DH", emoji: "🇲🇦" },
               ].map((s) => (
                 <button key={s.query} onClick={() => handleSend(s.query)}
-                  className="group rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-brand-300 hover:shadow-elev-2">
-                  <p className="text-sm font-bold text-slate-900 group-hover:text-brand-600">{s.label}</p>
+                  className="group min-h-[44px] rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-brand-300 hover:shadow-elev-2 active:scale-[0.98]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{s.emoji}</span>
+                    <p className="text-sm font-bold text-slate-900 group-hover:text-brand-600">{s.label}</p>
+                  </div>
                   <p className="mt-1 text-xs text-slate-500">{s.desc}</p>
                 </button>
               ))}
@@ -349,7 +361,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
           <div className="mx-auto max-w-3xl space-y-4 px-4 py-6">
             {messages.map((m) =>
               m.role === "bot" ? (
-                <div key={m.id} className="flex gap-3 animate-fade-in">
+                <div key={m.id} className="group flex gap-3 animate-fade-in">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
                     <Sparkles className="h-4 w-4" />
                   </div>
@@ -359,12 +371,14 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
                     ) : (
                       <ThinkingWaves />
                     )}
+                    <MessageTimestamp />
                   </div>
                 </div>
               ) : (
-                <div key={m.id} className="flex justify-end animate-fade-in">
+                <div key={m.id} className="group flex justify-end animate-fade-in">
                   <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-brand-600 px-4 py-3 text-sm leading-relaxed text-white shadow-elev-1">
                     {m.text}
+                    <MessageTimestamp />
                   </div>
                 </div>
               )
@@ -413,7 +427,12 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <ThinkingWaves phase={thinkingPhase} progress={thinkingPhase === "analyse" ? 33 : thinkingPhase === "recherche" ? 66 : 95} />
+                  <div className="flex items-center gap-2">
+                    <ThinkingWaves phase={thinkingPhase} progress={thinkingPhase === "analyse" ? 33 : thinkingPhase === "recherche" ? 66 : 95} />
+                    <span className="text-xs font-medium text-slate-500">
+                      {thinkingPhase === "analyse" ? "Analyse de votre demande..." : thinkingPhase === "recherche" ? "Recherche en cours..." : "Classement des résultats..."}
+                    </span>
+                  </div>
                   <SkeletonCard variant="inline" />
                   <SkeletonCard variant="inline" />
                 </div>
@@ -550,7 +569,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(input); setInput(""); } }}
               placeholder="Décrivez votre voiture idéale..."
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-brand-600 focus:bg-white focus:ring-2 focus:ring-brand-500/10 focus-depth"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-[16px] text-slate-900 placeholder-slate-400 outline-none transition focus:border-brand-600 focus:bg-white focus:ring-2 focus:ring-brand-500/10 focus-depth"
               disabled={streaming}
               aria-label="Votre message"
               inputMode="search"
@@ -563,13 +582,13 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
           <VoiceInput onTranscript={(t) => { setInput(t); handleSend(t); }} />
           {streaming ? (
             <button onClick={() => abortRef.current?.abort()}
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500 text-white transition hover:bg-red-600"
+              className="flex h-11 w-11 min-w-[44px] items-center justify-center rounded-2xl bg-red-500 text-white transition hover:bg-red-600 active:scale-95"
               aria-label="Arrêter la génération">
               <Pause className="h-4 w-4" />
             </button>
           ) : (
             <button onClick={() => { handleSend(input); setInput(""); }}
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-sm transition hover:bg-brand-700 active:scale-95 disabled:opacity-50"
+              className="flex h-11 w-11 min-w-[44px] items-center justify-center rounded-2xl bg-brand-600 text-white shadow-sm transition hover:bg-brand-700 active:scale-95 disabled:opacity-50"
               disabled={!input.trim()}
               aria-label="Envoyer">
               <Send className="h-4 w-4" />
