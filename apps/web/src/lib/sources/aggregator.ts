@@ -507,7 +507,5 @@ export async function getSourceStats(): Promise<Record<string, number>> {
 }
 
 // ============================================================================
-// PRE-WARM on module load (Next.js server start)
+// PRE-WARM — lazy init on first call to fetchAllSources()
 // ============================================================================
-
-void initCache();

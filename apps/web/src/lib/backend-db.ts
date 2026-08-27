@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import type { UnifiedCar } from "./sources/types";
 
 export interface Vehicle {
   id: string;
@@ -224,6 +225,47 @@ function normalizeVehicle(v: Vehicle) {
   };
 }
 
+// --- Normalize UnifiedCar (from scrapers) → same shape as normalizeVehicle output ---
+function normalizeUnifiedCar(car: UnifiedCar) {
+  return {
+    id: car.id,
+    slug: car.id,
+    name: car.title,
+    make: car.make,
+    model: car.model,
+    year: car.year,
+    price_mad: car.price,
+    price_display: car.priceFormatted,
+    km: car.km,
+    fuel: car.fuel,
+    body_type: car.bodyType,
+    transmission: car.transmission,
+    city: car.city,
+    image_url: car.image,
+    photos: car.photos || [],
+    score: car.score,
+    score_normalized: Math.round((car.score / 100) * 10 * 10) / 10,
+    nb_reviews: car.reputation?.reviews || 0,
+    source: car.source,
+    source_url: car.url || car.sourceUrl,
+    inventory_type: (car.inventoryType === "new" ? "neuf" : "occasion") as "neuf" | "occasion",
+    description: car.title,
+    places: 5,
+    created_at: car.scrapedAt,
+    updated_at: car.scrapedAt,
+    // Frontend aliases (same as normalizeVehicle)
+    title: car.title,
+    image: car.image,
+    price: car.price,
+    priceFormatted: car.priceFormatted,
+    bodyType: car.bodyType,
+    inventoryType: car.inventoryType,
+    url: car.url || car.sourceUrl,
+    contact: car.contact || { name: car.source, url: car.url || car.sourceUrl },
+    reputation: car.reputation || { label: car.source },
+  };
+}
+
 // --- NLP: unified parser from lib/nlp.ts ---
 import { parseQuery as _parseQuery, type SearchCriteria as NlpSearchCriteria } from "./nlp";
 
@@ -283,7 +325,27 @@ export async function searchVehiclesService(params: {
 }) {
   loadSeedData();
 
-  let results = [..._vehicles];
+  // Merge seed data + scraped data from disk cache (if available)
+  let allRaw: Vehicle[] = [..._vehicles];
+  try {
+    const cacheFile = path.join(process.cwd(), ".cache", "thiqti-cars.json");
+    if (fs.existsSync(cacheFile)) {
+      const raw = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
+      if (Array.isArray(raw.cars) && raw.cars.length > 0) {
+        const scraped = raw.cars as UnifiedCar[];
+        const scrapedAsVehicle = scraped.map((c) => normalizeUnifiedCar(c)) as unknown as Vehicle[];
+        const seedKeys = new Set(
+          _vehicles.map((v) => `${v.make.toLowerCase()}_${v.model.toLowerCase()}_${v.year}_${v.price_mad}`)
+        );
+        const newScraped = scrapedAsVehicle.filter(
+          (v) => !seedKeys.has(`${v.make.toLowerCase()}_${v.model.toLowerCase()}_${v.year}_${v.price_mad}`)
+        );
+        allRaw = [..._vehicles, ...newScraped];
+      }
+    }
+  } catch {}
+
+  let results = [...allRaw];
   const { q, make, model, fuel, body_type, transmission, inventory_type, city, min_price, max_price, min_year, max_km, places, sort = "pertinence", page = 1, limit = 20 } = params;
 
   // NLP Criteria from free text
@@ -394,7 +456,7 @@ export async function searchVehiclesService(params: {
   let minPriceFound = Infinity;
   let maxPriceFound = 0;
 
-  _vehicles.forEach(v => {
+  allRaw.forEach(v => {
     makeCounts[v.make] = (makeCounts[v.make] || 0) + 1;
     fuelCounts[v.fuel] = (fuelCounts[v.fuel] || 0) + 1;
     bodyCounts[v.body_type] = (bodyCounts[v.body_type] || 0) + 1;
@@ -432,7 +494,22 @@ export async function searchVehiclesService(params: {
 
 export async function getVehicleDetailService(id: string) {
   loadSeedData();
-  const vehicle = _vehicles.find(v => v.id === id || v.slug === id);
+  let vehicle = _vehicles.find(v => v.id === id || v.slug === id);
+
+  // Fallback: search disk cache for scraped cars
+  if (!vehicle) {
+    try {
+      const cacheFile = path.join(process.cwd(), ".cache", "thiqti-cars.json");
+      if (fs.existsSync(cacheFile)) {
+        const raw = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
+        if (Array.isArray(raw.cars)) {
+          const car = raw.cars.find((c: any) => c.id === id);
+          if (car) return normalizeUnifiedCar(car);
+        }
+      }
+    } catch {}
+  }
+
   if (!vehicle) return null;
 
   const reviews = _reviews.filter(r => r.vehicle_id === vehicle.id).slice(0, 20);
