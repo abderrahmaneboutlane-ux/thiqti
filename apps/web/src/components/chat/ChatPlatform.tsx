@@ -324,37 +324,30 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-50/50" role="log" aria-label="Conversation" aria-live="polite">
         {showWelcome ? (
-          /* Welcome screen */
-          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-            <div className="mb-6 flex justify-center">
-              <Logo size="lg" />
+          <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/20">
+              <Sparkles className="h-8 w-8 text-white" />
             </div>
-            <h2 className="font-serif text-3xl font-bold text-slate-900 md:text-4xl">
-              Bonjour <span className="text-brand-600">!</span>
-            </h2>
-            <p className="mt-3 max-w-md text-sm text-slate-500 font-medium leading-relaxed">
-              Je suis <strong>Thiqti</strong>, votre assistant automobile IA. Posez-moi n&apos;importe quelle question en français ou en darija.
+            <h2 className="text-xl font-bold text-slate-900">Bonjour 👋</h2>
+            <p className="mt-2 max-w-xs text-sm text-slate-500 leading-relaxed">
+              Je peux t'aider à trouver ta voiture idéale.
+              Décris-moi ce que tu cherches.
             </p>
-            <div className="mt-8 grid w-full max-w-lg grid-cols-2 gap-3">
+            <div className="mt-6 flex flex-col gap-2 w-full max-w-xs">
               {[
-                { label: "SUV familial", desc: "Pour la famille à Casablanca", query: "SUV familial Casablanca", emoji: "🚙" },
-                { label: "Citadine éco", desc: "Économique et fiable", query: "citadine economique moins de 150k", emoji: "🚗" },
-                { label: "Électrique / Hybride", desc: "Faible consommation", query: "voiture hybride ou electrique au Maroc", emoji: "⚡" },
-                { label: "Bghit SUV mazot", desc: "Recherche naturelle en Darija", query: "bghit SUV mazot b 300 000 DH", emoji: "🇲🇦" },
+                { label: "🚗 Familiale", value: "Je cherche une familiale" },
+                { label: "💰 Budget", value: "Moins de 200 000 DH" },
+                { label: "⛽ Diesel", value: "Diesel occasion" },
               ].map((s) => (
-                <button key={s.query} onClick={() => handleSend(s.query)}
-                  className="group min-h-[44px] rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-brand-300 hover:shadow-elev-2 active:scale-[0.98]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{s.emoji}</span>
-                    <p className="text-sm font-bold text-slate-900 group-hover:text-brand-600">{s.label}</p>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">{s.desc}</p>
+                <button
+                  key={s.value}
+                  onClick={() => { setInput(s.value); handleSend(s.value); }}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 active:scale-[0.98]"
+                >
+                  {s.label}
                 </button>
               ))}
             </div>
-            <p className="mt-8 text-xs text-slate-400">
-              Exemples : &quot;Dacia Sandero moins de 150k&quot; · &quot;Toyota vs Hyundai&quot; · &quot;Meilleur SUV rapport qualité prix&quot;
-            </p>
           </div>
         ) : (
           /* Conversation */
@@ -365,7 +358,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
                     <Sparkles className="h-4 w-4" />
                   </div>
-                  <div className="max-w-[85%] rounded-2xl rounded-tl-sm border border-slate-200 bg-white/40 liquid-glass px-4 py-3 shadow-elev-1">
+                  <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-slate-100 px-4 py-2.5 text-sm text-slate-800">
                     {m.text ? (
                       <MarkdownMessage content={m.text} />
                     ) : (
@@ -376,7 +369,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
                 </div>
               ) : (
                 <div key={m.id} className="group flex justify-end animate-fade-in">
-                  <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-brand-600 px-4 py-3 text-sm leading-relaxed text-white shadow-elev-1">
+                  <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-brand-600 px-4 py-2.5 text-sm text-white">
                     {m.text}
                     <MessageTimestamp />
                   </div>
@@ -397,10 +390,9 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
             )}
 
             {activeCriteria.length > 0 && !searching && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mr-1">Critères actifs :</span>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
                 {activeCriteria.map((chip) => (
-                  <span key={chip} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600 border border-slate-200">
+                  <span key={chip} className="flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
                     {chip}
                     <button onClick={() => {
                       const [key] = chip.split(":");
@@ -450,10 +442,10 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
                     <div className="space-y-3">
                       {visibleResults?.map((car) => (
                         <div key={car.id}
-                          className="group flex flex-col sm:flex-row gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-brand-200 hover:shadow-elev-2 cursor-pointer shadow-elev-1"
+                          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm cursor-pointer transition hover:border-brand-200"
                           onClick={() => handleSelectVehicle(car)}>
-                          <div className="flex gap-3 flex-1 min-w-0">
-                            <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                          <div className="flex flex-col sm:flex-row gap-3 flex-1 min-w-0">
+                            <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-24 sm:w-32 sm:aspect-auto">
                               <CarImage src={car.image} sources={car.photos} alt={car.title} make={car.make} model={car.model} bodyType={car.bodyType} className="h-full w-full object-cover transition group-hover:scale-105 duration-500" />
                               <div className="absolute left-1.5 top-1.5"><InventoryBadge type={car.inventoryType} /></div>
                               <div className="absolute right-1.5 top-1.5">
@@ -539,66 +531,6 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
             )}
           </div>
         )}
-      </div>
-
-      {/* Sticky lead capture bar — shown when results are displayed */}
-      {results && results.length > 0 && !searching && (
-        <div className="shrink-0 border-t border-brand-200 bg-brand-50 px-4 py-3 sm:hidden">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-brand-800">Besoin d&apos;aide pour choisir ?</p>
-              <p className="text-[10px] text-brand-600">Un conseiller vous rappelle sous 24h</p>
-            </div>
-            <Link href="/contact"
-              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-brand-700 active:scale-95">
-              <Phone className="h-3 w-3" /> Contact
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Input area — sticky bottom with safe-area for mobile */}
-      <div className="shrink-0 border-t border-slate-200 bg-white px-4 pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-3 shadow-sm">
-        <div className="mx-auto w-full max-w-3xl flex gap-2 overflow-hidden">
-          <div className="relative flex-1">
-            <Send className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(input); setInput(""); } }}
-              placeholder="Décrivez votre voiture idéale..."
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-[16px] text-slate-900 placeholder-slate-400 outline-none transition focus:border-brand-600 focus:bg-white focus:ring-2 focus:ring-brand-500/10 focus-depth"
-              disabled={streaming}
-              aria-label="Votre message"
-              inputMode="search"
-              enterKeyHint="send"
-              autoComplete="off"
-              autoCorrect="on"
-              autoCapitalize="sentences"
-            />
-          </div>
-          <VoiceInput onTranscript={(t) => { setInput(t); handleSend(t); }} />
-          {streaming ? (
-            <button onClick={() => abortRef.current?.abort()}
-              className="flex h-11 w-11 min-w-[44px] items-center justify-center rounded-2xl bg-red-500 text-white transition hover:bg-red-600 active:scale-95"
-              aria-label="Arrêter la génération">
-              <Pause className="h-4 w-4" />
-            </button>
-          ) : (
-            <button onClick={() => { handleSend(input); setInput(""); }}
-              className="flex h-11 w-11 min-w-[44px] items-center justify-center rounded-2xl bg-brand-600 text-white shadow-sm transition hover:bg-brand-700 active:scale-95 disabled:opacity-50"
-              disabled={!input.trim()}
-              aria-label="Envoyer">
-              <Send className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-        <p className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-medium">
-          <Gauge className="h-3 w-3" /><Fuel className="h-3 w-3" />
-          Français / Darija · Neuf &amp; Occasion · Prix en DH
-        </p>
       </div>
 
       {/* Vehicle Drawer */}

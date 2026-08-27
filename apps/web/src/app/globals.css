@@ -1148,4 +1148,271 @@ img { color-interpolation-filters: sRGB; }
   -webkit-touch-callout: none;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE-FIRST PREMIUM — Phase A
+   Reduce visual noise on small screens
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* On mobile: disable heavy animations and 3D effects */
+@media (max-width: 767px) {
+  /* Disable gradient text animation on mobile */
+  .gradient-text {
+    animation: none;
+    background-size: 100% 100%;
+  }
+
+  /* Simplify card hover on mobile (no transform) */
+  .card:hover {
+    transform: none;
+  }
+
+  /* Disable liquid glass breathing on mobile */
+  .liquid-glass {
+    backdrop-filter: blur(4px) saturate(120%);
+  }
+
+  /* Reduce shadows on mobile for cleaner look */
+  .card {
+    box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+  }
+
+  /* Disable 3D effects on mobile */
+  .card-3d,
+  .btn-3d-primary,
+  .btn-3d-whatsapp,
+  .btn-3d-phone,
+  .badge-3d {
+    transform: none !important;
+    box-shadow: var(--shadow-elev-1) !important;
+  }
+
+  /* Disable tilt/zoom effects on mobile */
+  .card-zoom-overlay,
+  .card-flip-source,
+  .flip-in {
+    transform: none !important;
+  }
+
+  /* Disable score relief on mobile */
+  .score-relief,
+  .focus-depth,
+  .scroll-depth,
+  .gallery-parallax {
+    transform: none !important;
+  }
+
+  /* Disable hover-lift on mobile */
+  .hover-lift:hover {
+    transform: none;
+  }
+
+  /* Disable glow effects on mobile */
+  .glow-brand:hover {
+    box-shadow: none;
+  }
+
+  /* Disable spec-card-3D on mobile */
+  .spec-card-3d {
+    transform: none !important;
+  }
+
+  /* Disable animated float on mobile */
+  .animate-float {
+    animation: none;
+  }
+
+  /* Disable pulse-glow on mobile */
+  .pulse-glow {
+    animation: none;
+  }
+
+  /* Disable match badge shine on mobile */
+  .match-badge::after {
+    animation: none;
+  }
+
+  /* Disable NLP pulse on mobile */
+  .nlp-pulse {
+    animation: none;
+  }
+
+  /* Simplify btn-primary on mobile (no gradient animation) */
+  .btn-primary {
+    background-size: 100% 100%;
+  }
+
+  /* Disable gradient shift on mobile */
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+  }
+
+  /* Disable 3D mesh background on mobile */
+  .bg-3d-mesh {
+    display: none;
+  }
+
+  /* Layer floats disabled on mobile */
+  .layer-float-1,
+  .layer-float-2,
+  .layer-float-3 {
+    transform: none !important;
+    animation: none;
+  }
+
+  /* Perspective containers: remove perspective on mobile */
+  .perspective-1000,
+  .perspective-1500 {
+    perspective: none;
+  }
+}
+
+/* Prefers reduced motion — global override */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE SPACING SYSTEM
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --mobile-gap-xs: 4px;
+  --mobile-gap-sm: 8px;
+  --mobile-gap-md: 12px;
+  --mobile-gap-lg: 16px;
+  --mobile-gap-xl: 20px;
+  --mobile-gap-2xl: 24px;
+  --mobile-gap-3xl: 32px;
+  --mobile-page-padding: 16px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --mobile-page-padding: 24px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BOTTOM SHEET (for mobile filters, etc.)
+   ═══════════════════════════════════════════════════════════════════ */
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+.bottom-sheet-overlay[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-modal);
+  max-height: 85vh;
+  background: white;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+  transform: translateY(100%);
+  transition: transform 300ms var(--ease-expo);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+.bottom-sheet[data-open="true"] {
+  transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(var(--slate-300-rgb));
+  margin: 8px auto 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE VEHICLE CARD — Optimized for small screens
+   ═══════════════════════════════════════════════════════════════════ */
+.vehicle-card-mobile {
+  @apply bg-white rounded-2xl border border-slate-200 overflow-hidden;
+  box-shadow: var(--shadow-card-listing);
+}
+
+.vehicle-card-mobile .card-image {
+  @apply relative aspect-[16/10] overflow-hidden bg-slate-100;
+}
+
+.vehicle-card-mobile .card-content {
+  @apply p-3;
+}
+
+.vehicle-card-mobile .card-price {
+  @apply text-lg font-bold text-price-600;
+}
+
+.vehicle-card-mobile .card-title {
+  @apply text-sm font-semibold text-slate-900 leading-snug;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.vehicle-card-mobile .card-specs {
+  @apply flex items-center gap-2 text-xs text-slate-500 mt-1;
+}
+
+.vehicle-card-mobile .card-location {
+  @apply flex items-center gap-1 text-xs text-slate-400 mt-1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE CHAT INPUT — Fixed bottom with safe area
+   ═══════════════════════════════════════════════════════════════════ */
+.chat-input-container {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid rgb(var(--slate-200-rgb));
+  padding: 8px 12px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: var(--z-sticky);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE HEADER — Compact sticky
+   ═══════════════════════════════════════════════════════════════════ */
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: white;
+  border-bottom: 1px solid rgb(var(--slate-200-rgb));
+  padding-top: env(safe-area-inset-top);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE SKELETON — Shimmer loading states
+   ═══════════════════════════════════════════════════════════════════ */
+.skeleton-mobile {
+  @apply animate-pulse rounded-xl bg-slate-100;
+  background: linear-gradient(90deg, rgb(var(--slate-100-rgb)) 25%, rgb(var(--slate-200-rgb)) 50%, rgb(var(--slate-100-rgb)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
 

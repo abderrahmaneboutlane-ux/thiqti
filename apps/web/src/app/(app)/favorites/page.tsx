@@ -34,7 +34,7 @@ export default function FavoritesPage() {
   };
 
   return (
-    <div className="page-enter min-h-screen px-4 sm:px-6 py-8">
+    <div className="page-enter min-h-screen px-4 sm:px-6 py-8 pb-24 lg:pb-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8">
           <h1 className="flex items-center gap-3 font-serif text-3xl font-bold text-slate-900 md:text-4xl">

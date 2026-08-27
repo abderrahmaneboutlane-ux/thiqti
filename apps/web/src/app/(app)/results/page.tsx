@@ -14,6 +14,7 @@ import CardZoomLink from "@/components/ui/CardZoomLink";
 import ScoreBadge, { type ScoreExplanation } from "@/components/ui/ScoreBadge";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerReveal from "@/components/StaggerReveal";
+import FilterSheet from "@/components/FilterSheet";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -85,7 +86,7 @@ export default function ResultsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [previewCar, setPreviewCar] = useState<CarListing | null>(null);
   const [refineOpen, setRefineOpen] = useState(false);
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const [refine, setRefine] = useState({
     carrosserie: "",
@@ -282,45 +283,51 @@ export default function ResultsPage() {
 
   const displayCriteria = criteria ? extractDisplayCriteria(criteria) : [];
   const smartHeader = buildSmartHeader(total, criteria, query);
+  const activeFilterCount = [refine.carrosserie, refine.motorisation, refine.budgetMax, refine.anneeMin, refine.kmMax, refine.marque, refine.ville].filter(Boolean).length;
 
   return (
     <div className="page-enter overflow-hidden px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-6xl">
         {/* ── Header ──────────────────────────────────────────── */}
-        <div className="mb-8">
-          {analyzing ? (
-            <div className="flex items-center gap-3">
-              <div className="nlp-pulse flex h-8 w-8 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                <Sparkles className="h-4 w-4" />
+        <div className="sticky top-0 z-20 border-b border-slate-200/60 bg-white/95 backdrop-blur-lg">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div>
+                {analyzing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="nlp-pulse flex h-6 w-6 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </div>
+                    <span className="text-xs font-medium text-slate-600">Analyse NLP...</span>
+                  </div>
+                ) : (
+                  <>
+                    <h1 className="text-lg font-bold text-slate-900">{smartHeader.title}</h1>
+                    <p className="text-xs text-slate-500">{smartHeader.subtitle}</p>
+                  </>
+                )}
               </div>
-              <span className="text-sm font-medium text-slate-600">Analyse NLP et classement TOPSIS sur {total || 1750} véhicules...</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setFilterSheetOpen(true)}
+                  className="touch-target flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  Filtrer
+                  {activeFilterCount > 0 && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
-          ) : (
-            <>
-              <h1 className="font-serif text-3xl text-slate-900 md:text-4xl">
-                <span className="text-brand-600 font-bold">{total ? total.toLocaleString("fr-FR") : cars.length}</span>{" "}
-                {smartHeader.title.replace(`${total ? total.toLocaleString("fr-FR") : cars.length} `, "")}
-              </h1>
-              <p className="mt-1.5 text-sm text-slate-500">
-                {smartHeader.subtitle} {totalPages > 1 && `• Page ${page} sur ${totalPages} (${cars.length} affichés)`}
-              </p>
-            </>
-          )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-6 lg:flex-row">
-          {/* ── Mobile filter toggle button ──────────────────────── */}
-          <button
-            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-            className="lg:hidden flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-elev-1 transition-colors hover:bg-brand-50 hover:text-brand-600"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            {mobileFiltersOpen ? "Masquer les filtres" : "Filtrer les résultats"}
-            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileFiltersOpen ? "rotate-180" : ""}`} />
-          </button>
-
-          {/* ── Sidebar (hidden by default on mobile) ─────────────── */}
-          <aside className={`w-full shrink-0 space-y-4 lg:w-72 ${mobileFiltersOpen ? "block" : "hidden lg:block"}`}>
+          {/* ── Sidebar (hidden on mobile, FilterSheet handles mobile filtering) ── */}
+          <aside className="hidden lg:block w-full shrink-0 space-y-4 lg:w-72">
             {/* Search input */}
             <ScrollReveal delay={0}>
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-elev-1">
@@ -589,11 +596,11 @@ export default function ResultsPage() {
 
                   return (
                     <TiltCard key={v.id} className="h-full rounded-2xl">
-                      <div className="card-3d group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl specular-shine">
-                        <CardZoomLink href={`/vehicle/${v.id}`} className="block">
-                          <div className="relative h-48 overflow-hidden bg-slate-100">
+                      <div className="card-3d group relative flex h-full flex-col sm:flex-row justify-between overflow-hidden rounded-2xl specular-shine">
+                        <CardZoomLink href={`/vehicle/${v.id}`} className="block sm:flex sm:flex-1 sm:overflow-hidden">
+                          <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-lg bg-slate-100 sm:h-24 sm:w-32">
                             <CarImage src={v.image} alt={v.title} make={v.make} model={v.model} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" sources={v.photos || []} />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent sm:bg-gradient-to-r" />
                             <div className="absolute left-2 top-2">
                               <span className="badge-3d px-2.5 py-1 text-[10px] text-slate-700">
                                 <ShieldCheck className="h-3 w-3 text-brand-600" />
@@ -606,18 +613,20 @@ export default function ResultsPage() {
                               </div>
                             )}
                           </div>
-                          <div className="p-4 pb-2">
-                            <div className="mb-2 flex items-center justify-between">
-                              <span className="text-xl font-extrabold text-price-600 drop-shadow-xs">{v.priceFormatted}</span>
-                              {v.score !== undefined && (
-                                <ScoreBadge percent={v.score} explanations={v.explanations} />
-                              )}
-                            </div>
-                            <h3 className="truncate text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors leading-snug">{v.title}</h3>
-                            <p className="mt-0.5 text-xs font-medium text-slate-500">{v.year} · {v.km.toLocaleString("fr-FR")} km</p>
-                            <div className="mt-2.5 flex items-center gap-3 text-xs text-slate-600">
-                              <span className="flex items-center gap-1 font-semibold"><Fuel className="h-3.5 w-3.5 text-slate-400" />{v.fuel}</span>
-                              <span className="flex items-center gap-1 font-semibold"><MapPin className="h-3.5 w-3.5 text-slate-400" />{v.city}</span>
+                          <div className="flex flex-1 flex-col justify-between p-3 sm:p-4 sm:pb-2 min-w-0">
+                            <div className="p-0 sm:p-0">
+                              <div className="mb-2 flex items-center justify-between">
+                                <span className="text-xl font-extrabold text-price-600 drop-shadow-xs">{v.priceFormatted}</span>
+                                {v.score !== undefined && (
+                                  <ScoreBadge percent={v.score} explanations={v.explanations} />
+                                )}
+                              </div>
+                              <h3 className="truncate text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors leading-snug">{v.title}</h3>
+                              <p className="mt-0.5 text-xs font-medium text-slate-500">{v.year} · {v.km.toLocaleString("fr-FR")} km</p>
+                              <div className="mt-2.5 flex items-center gap-3 text-xs text-slate-600">
+                                <span className="flex items-center gap-1 font-semibold"><Fuel className="h-3.5 w-3.5 text-slate-400" />{v.fuel}</span>
+                                <span className="flex items-center gap-1 font-semibold"><MapPin className="h-3.5 w-3.5 text-slate-400" />{v.city}</span>
+                              </div>
                             </div>
                           </div>
                         </CardZoomLink>
@@ -758,123 +767,147 @@ export default function ResultsPage() {
 
             {/* ── Pagination Controls ───────────────────────────── */}
             {!loading && cars.length > 0 && totalPages > 1 && (
-              <div className="mt-8 flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md p-4 sm:p-6 shadow-elev-1">
-                {/* Stats — hidden on small mobile */}
-                <div className="hidden sm:flex flex-wrap items-center justify-between w-full gap-4 text-xs text-slate-500 border-b border-slate-100 pb-4">
-                  <div>
-                    Affichage de <span className="font-bold text-slate-800">{(page - 1) * limit + 1}</span> à{" "}
-                    <span className="font-bold text-slate-800">{Math.min(page * limit, total)}</span> sur{" "}
-                    <span className="font-bold text-brand-600">{total.toLocaleString("fr-FR")}</span> véhicules
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>Par page :</span>
-                    {[24, 48, 96].map((sz) => (
+              <>
+                {/* Mobile: simple load more */}
+                <div className="flex justify-center py-6 sm:hidden">
+                  {page < totalPages && (
+                    <button
+                      onClick={loadMoreCars}
+                      disabled={loadingMore}
+                      className="btn-primary min-h-[44px] rounded-xl px-6 text-sm"
+                    >
+                      {loadingMore ? "Chargement..." : "Voir plus de véhicules"}
+                    </button>
+                  )}
+                </div>
+
+                {/* Desktop: full pagination */}
+                <div className="hidden sm:flex mt-8 flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md p-4 sm:p-6 shadow-elev-1">
+                  <div className="flex flex-wrap items-center justify-between w-full gap-4 text-xs text-slate-500 border-b border-slate-100 pb-4">
+                    <div>
+                      Affichage de <span className="font-bold text-slate-800">{(page - 1) * limit + 1}</span> à{" "}
+                      <span className="font-bold text-slate-800">{Math.min(page * limit, total)}</span> sur{" "}
+                      <span className="font-bold text-brand-600">{total.toLocaleString("fr-FR")}</span> véhicules
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>Par page :</span>
+                      {[24, 48, 96].map((sz) => (
+                        <button
+                          key={sz}
+                          onClick={() => changeLimit(sz)}
+                          className={`rounded-lg px-2.5 py-1 font-medium transition-all ${
+                            limit === sz
+                              ? "bg-brand-600 text-white shadow-xs"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                        >
+                          {sz}
+                        </button>
+                      ))}
                       <button
-                        key={sz}
-                        onClick={() => changeLimit(sz)}
+                        onClick={() => changeLimit(2000)}
                         className={`rounded-lg px-2.5 py-1 font-medium transition-all ${
-                          limit === sz
+                          limit >= 1000
                             ? "bg-brand-600 text-white shadow-xs"
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                         }`}
                       >
-                        {sz}
+                        Tous ({total})
                       </button>
-                    ))}
+                    </div>
+                  </div>
+
+                  <div className="flex w-full items-center justify-center gap-1.5">
                     <button
-                      onClick={() => changeLimit(2000)}
-                      className={`rounded-lg px-2.5 py-1 font-medium transition-all ${
-                        limit >= 1000
-                          ? "bg-brand-600 text-white shadow-xs"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
+                      onClick={() => goToPage(page - 1)}
+                      disabled={page <= 1}
+                      className="flex h-10 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
                     >
-                      Tous ({total})
+                      <ChevronLeft className="h-4 w-4" />
+                      <span>Précédent</span>
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === totalPages || (p >= page - 2 && p <= page + 2))
+                        .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((item, idx) =>
+                          typeof item === "string" ? (
+                            <span key={`dots-${idx}`} className="px-1 text-xs text-slate-400">•••</span>
+                          ) : (
+                            <button
+                              key={item}
+                              onClick={() => goToPage(item)}
+                              className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-xs font-bold transition-all ${
+                                page === item
+                                  ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-600/30"
+                                  : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-600 shadow-xs"
+                              }`}
+                            >
+                              {item}
+                            </button>
+                          )
+                        )}
+                    </div>
+
+                    <button
+                      onClick={() => goToPage(page + 1)}
+                      disabled={page >= totalPages}
+                      className="flex h-10 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
+                    >
+                      <span>Suivant</span>
+                      <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
 
-                {/* Simple prev/next on mobile, full pagination on desktop */}
-                <div className="flex w-full items-center justify-between sm:justify-center sm:gap-1.5">
-                  <button
-                    onClick={() => goToPage(page - 1)}
-                    disabled={page <= 1}
-                    className="flex h-10 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">Précédent</span>
-                    <span className="sm:hidden">←</span>
-                  </button>
-
-                  <span className="text-xs font-semibold text-slate-500 sm:hidden">
-                    {page} / {totalPages}
-                  </span>
-
-                  {/* Page number buttons — desktop only */}
-                  <div className="hidden sm:flex items-center gap-1.5">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter((p) => p === 1 || p === totalPages || (p >= page - 2 && p <= page + 2))
-                      .reduce<(number | string)[]>((acc, p, idx, arr) => {
-                        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
-                        acc.push(p);
-                        return acc;
-                      }, [])
-                      .map((item, idx) =>
-                        typeof item === "string" ? (
-                          <span key={`dots-${idx}`} className="px-1 text-xs text-slate-400">•••</span>
-                        ) : (
-                          <button
-                            key={item}
-                            onClick={() => goToPage(item)}
-                            className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-xs font-bold transition-all ${
-                              page === item
-                                ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-600/30"
-                                : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-600 shadow-xs"
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        )
+                  {page < totalPages && (
+                    <button
+                      onClick={loadMoreCars}
+                      disabled={loadingMore}
+                      className="btn-secondary w-full max-w-sm flex items-center justify-center gap-2 py-3 font-semibold text-brand-700 border-brand-200 bg-brand-50/50 hover:bg-brand-50 shadow-xs"
+                    >
+                      {loadingMore ? (
+                        <span className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
+                          Chargement de la page {page + 1}...
+                        </span>
+                      ) : (
+                        <>
+                          <ChevronDown className="h-4 w-4" />
+                          Charger {Math.min(limit, total - cars.length)} véhicules de plus (Page {page + 1}/{totalPages})
+                        </>
                       )}
-                  </div>
-
-                  <button
-                    onClick={() => goToPage(page + 1)}
-                    disabled={page >= totalPages}
-                    className="flex h-10 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-xs"
-                  >
-                    <span className="hidden sm:inline">Suivant</span>
-                    <span className="sm:hidden">→</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
+                    </button>
+                  )}
                 </div>
-
-                {/* Load More Button */}
-                {page < totalPages && (
-                  <button
-                    onClick={loadMoreCars}
-                    disabled={loadingMore}
-                    className="btn-secondary w-full max-w-sm flex items-center justify-center gap-2 py-3 font-semibold text-brand-700 border-brand-200 bg-brand-50/50 hover:bg-brand-50 shadow-xs"
-                  >
-                    {loadingMore ? (
-                      <span className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
-                        Chargement de la page {page + 1}...
-                      </span>
-                    ) : (
-                      <>
-                        <ChevronDown className="h-4 w-4" />
-                        Charger {Math.min(limit, total - cars.length)} véhicules de plus (Page {page + 1}/{totalPages})
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
+              </>
             )}
           </div>
         </div>
       </div>
       
+      <FilterSheet
+        open={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        onApply={(f) => {
+          if (f.fuel) setRefine(prev => ({...prev, motorisation: f.fuel}));
+          if (f.body_type) setRefine(prev => ({...prev, carrosserie: f.body_type}));
+          if (f.max_price) setRefine(prev => ({...prev, budgetMax: f.max_price}));
+          if (f.sort) setSortBy(f.sort);
+          doSearch(query, 1, limit, false);
+        }}
+        initialFilters={{
+          fuel: refine.motorisation,
+          body_type: refine.carrosserie,
+          max_price: refine.budgetMax,
+          sort: sortBy,
+        }}
+      />
+
       {previewCar && (
         <CarPreview3DModal
           isOpen={!!previewCar}

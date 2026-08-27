@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, FormEvent } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Fuel, Gauge, Calendar, ChevronLeft, Share2, CheckCircle2, MessageSquare, MessageCircle, AlertTriangle, Clock, TrendingUp, TrendingDown, BadgeCheck, Globe, ExternalLink, Facebook, Instagram, Newspaper, Store, Eye, Phone, Calculator, CircleDollarSign, Car } from "lucide-react";
+import { MapPin, Fuel, Gauge, Calendar, ChevronLeft, Share2, CheckCircle2, MessageSquare, MessageCircle, AlertTriangle, Clock, TrendingUp, TrendingDown, BadgeCheck, Globe, ExternalLink, Facebook, Instagram, Newspaper, Store, Eye, Phone, Calculator, CircleDollarSign, Car, Heart } from "lucide-react";
 import CarImage from "@/components/CarImage";
 import SafetyBadge, { safetyLabelOf } from "@/components/SafetyBadge";
 import SellerContact from "@/components/SellerContact";
@@ -203,7 +203,7 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
   const hasEnoughReviews = reputation && reputation.dataAvailable === true;
 
   return (
-    <div className="page-enter px-6 py-8 bg-slate-50">
+    <div className="page-enter px-6 py-8 bg-slate-50 pb-24 lg:pb-8">
       <div className="mx-auto max-w-6xl">
         <Link href="/results" className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-600 transition-colors">
           <ChevronLeft className="h-4 w-4" /> Retour aux résultats
@@ -214,84 +214,79 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
             {/* Main image card */}
             <ScrollReveal>
               <div className="card overflow-hidden shadow-elev-2 hover-lift">
-              <div className="relative h-80 overflow-hidden bg-slate-100" ref={galleryRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-                <AnimatePresence mode="popLayout">
-                  <motion.div
-                    key={mainImg || car.image}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.35 }}
-                    className="absolute inset-0"
-                  >
-                    <CarImage src={mainImg || car.image} sources={car.photos} alt={car.title} make={car.make} model={car.model} bodyType={car.bodyType} className="h-full w-full object-cover" />
-                  </motion.div>
-                </AnimatePresence>
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
-                <div className="absolute left-3 top-3 flex gap-2">
-                  <span className="rounded-lg bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">{car.source}</span>
-                  {car.inventoryType && (
-                    <span className={`rounded-lg px-2.5 py-1 text-xs font-bold backdrop-blur ${car.inventoryType === "new" ? "bg-sky-500/90 text-white" : "bg-brand-600 text-white"}`}>
-                      {car.inventoryType === "new" ? "Neuf" : "Occasion"}
-                    </span>
-                  )}
+              <div className="relative overflow-hidden bg-slate-100">
+                <div
+                  ref={galleryRef}
+                  onTouchStart={onTouchStart}
+                  onTouchEnd={onTouchEnd}
+                  className="aspect-[4/3] w-full"
+                >
+                  <CarImage
+                    src={mainImg || car.image}
+                    sources={car.photos}
+                    alt={`${car.year} ${car.make} ${car.model}`}
+                    make={car.make}
+                    model={car.model}
+                    bodyType={car.bodyType}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-                {car.reputation?.verified && (
-                  <div className="absolute bottom-3 left-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-300 backdrop-blur">
-                      <BadgeCheck className="h-3.5 w-3.5" /> Annonce vérifiée
-                    </span>
+                {/* Photo counter */}
+                {car.photos && car.photos.length > 1 && (
+                  <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                    {car.photos.indexOf(mainImg || car.image) + 1} / {car.photos.length}
                   </div>
                 )}
+                {/* Back button */}
+                <Link
+                  href="/results"
+                  className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+                  aria-label="Retour"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Link>
+                {/* Favorite button */}
+                <button
+                  onClick={() => setFav(!fav)}
+                  className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+                  aria-label={fav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                >
+                  <Heart className={`h-5 w-5 ${fav ? "fill-red-500 text-red-500" : ""}`} />
+                </button>
               </div>
-              {car.photos && car.photos.length > 1 && (
-                <div className="flex gap-2 border-t border-slate-200 p-3 bg-slate-50/50" role="group" aria-label="Galerie photos">
-                  {car.photos.slice(0, 5).map((photo, i) => (
-                    <button key={i} onClick={() => setMainImg(photo)} aria-label={`Photo ${i + 1}`} className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-xl transition ${photo === mainImg ? "ring-2 ring-brand-600 shadow-sm" : "opacity-70 hover:opacity-100"}`}>
-                      <CarImage src={photo} sources={car.photos} alt={`${car.title} ${i + 1}`} make={car.make} model={car.model} bodyType={car.bodyType} className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="p-6">
-                <div className="flex items-start justify-between gap-4">
+
+              <div className="px-4 py-4">
+                <div className="flex items-start justify-between">
                   <div>
-                    <h1 className="font-serif text-2xl font-bold text-slate-900 md:text-3xl">{car.title}</h1>
-                    <p className="mt-1 text-sm text-slate-500 font-medium">{car.year} · {car.km.toLocaleString("fr-FR")} km · {car.fuel}</p>
+                    <h1 className="text-xl font-bold text-slate-900">{car.year} {car.make} {car.model}</h1>
+                    <p className="mt-1 text-sm text-slate-500">{car.fuel} · {car.km?.toLocaleString("fr-FR")} km · {car.city}</p>
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button onClick={() => setFav(!fav)} aria-label="Favori" className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-400 hover:text-red-500 transition-colors shadow-elev-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2} className={`h-5 w-5 ${fav ? "fill-red-500 text-red-500" : ""}`}><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg></button>
-                    <button onClick={() => { navigator.clipboard.writeText(window.location.href); showToast("Lien copié !", "success"); }} aria-label="Partager" className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-400 hover:text-brand-600 transition-colors shadow-elev-1"><Share2 className="h-5 w-5" /></button>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-price-600">{car.priceFormatted}</p>
                   </div>
                 </div>
-                <p className="mt-4 font-serif text-3xl font-bold text-price-600">{car.priceFormatted}</p>
-                {car.priceStats && (
-                  <JustePrixBadge priceStats={car.priceStats} price={car.price} />
-                )}
-                {car.url && car.url !== "#" && (
-                  <a
-                    href={car.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-brand-300 hover:text-brand-600"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Voir l&apos;annonce originale sur {car.source}
-                  </a>
-                )}
               </div>
               </div>
             </ScrollReveal>
 
             {/* Tabs */}
             <ScrollReveal delay={150}>
-              <div className="mt-6 flex gap-1.5 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-elev-1" role="tablist" aria-label="Détails du véhicule">
-                {(["specs", "reputation", "offers"] as const).map((tab) => (
-                  <button key={tab} role="tab" aria-selected={activeTab === tab} onClick={() => setActiveTab(tab)} className={`relative flex-1 rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider transition ${activeTab === tab ? "text-white" : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"}`}>
-                    {activeTab === tab && (
-                      <motion.div layoutId="vehicle-tab-bg" className="absolute inset-0 rounded-xl bg-brand-600 shadow-sm" transition={{ type: "spring", bounce: 0.2, duration: 0.5 }} />
-                    )}
-                    <span className="relative z-10">{tab === "specs" ? "Caractéristiques" : tab === "reputation" ? "E-Réputation" : "Offres & Financement"}</span>
+              <div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-4 scrollbar-none">
+                {[
+                  { key: "specs", label: "Caractéristiques" },
+                  { key: "reputation", label: "Réputation" },
+                  { key: "offers", label: "Offres" },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key as typeof activeTab)}
+                    className={`shrink-0 px-4 py-3 text-sm font-medium transition-colors ${
+                      activeTab === tab.key
+                        ? "border-b-2 border-brand-600 text-brand-600"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    {tab.label}
                   </button>
                 ))}
               </div>
@@ -303,7 +298,7 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
               {activeTab === "specs" && (
                 <div className="card p-6" role="tabpanel" aria-label="Caractéristiques">
                   <h2 className="mb-4 text-lg font-bold text-slate-900">Caracteristiques</h2>
-                  <StaggerReveal className="grid grid-cols-2 gap-4 md:grid-cols-4" staggerMs={80}>
+                  <StaggerReveal className="grid grid-cols-2 gap-2 px-4 md:grid-cols-4" staggerMs={80}>
                     {[
                       { label: "Kilometrage", value: `${car.km.toLocaleString()} km`, icon: Gauge },
                       { label: "Annee", value: String(car.year), icon: Calendar },

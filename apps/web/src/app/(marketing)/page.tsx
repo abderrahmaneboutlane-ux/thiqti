@@ -6,6 +6,7 @@ import {
   Sparkles, CarFront, ShieldCheck, ArrowRight, MapPin,
   ExternalLink, Search, Star, TrendingUp,
   Heart, GitCompareArrows,   Brain, Database, SlidersHorizontal, Gauge,
+  MessageCircle,
 } from "lucide-react";
 import CarImage from "@/components/CarImage";
 import Logo from "@/components/Logo";
@@ -151,12 +152,11 @@ export default function HomePage() {
   return (
     <div className="page-enter min-h-screen">
       {/* ---- NAVIGATION ---- */}
-      <nav className="sticky top-0 z-50 w-full liquid-glass border-b border-slate-200/60">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <nav className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/95 backdrop-blur-lg">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
           <Link href="/" className="flex shrink-0 items-center">
             <Logo size="sm" />
           </Link>
-
           <div className="hidden items-center gap-1 md:flex">
             {[
               { href: "/", label: "Accueil" },
@@ -172,9 +172,6 @@ export default function HomePage() {
                 {link.label}
               </Link>
             ))}
-          </div>
-
-          <div className="flex items-center gap-3">
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("thiqti:open-command-palette"))}
               className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-500 shadow-elev-1 transition hover:border-brand-300 hover:text-brand-600 md:flex"
@@ -186,9 +183,11 @@ export default function HomePage() {
                 Ctrl K
               </kbd>
             </button>
+          </div>
+          <div className="flex items-center gap-3">
             <Link
               href="/chat"
-              className="btn-press btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-white shadow-brand-glow transition hover:shadow-lg"
+              className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700"
             >
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Assistant IA</span>
@@ -201,7 +200,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden pt-16 pb-16">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-500 via-brand-700 to-slate-950 animate-mesh-breathing" style={{ backgroundSize: '200% 200%' }} />
-          <Hero3D className="absolute inset-0 h-full w-full opacity-80" />
+          <Hero3D className="hidden lg:block absolute inset-0 h-full w-full opacity-80" />
           <div data-scroll-depth="0.09" className="absolute left-[15%] top-[20%] h-80 w-80 rounded-full bg-sky-400/10 blur-[120px]" />
           <div data-scroll-depth="0.05" className="absolute bottom-[30%] right-[10%] h-64 w-64 rounded-full bg-sky-300/5 blur-[100px]" />
           <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-950/40 to-transparent" />
@@ -217,48 +216,53 @@ export default function HomePage() {
                 </span>
               </div>
 
-              <h1 className="mt-6 font-serif text-5xl font-bold leading-[1.05] text-white md:text-6xl lg:text-7xl">
+              <h1 className="mt-6 text-display text-center text-3xl font-bold leading-[1.05] text-white md:text-left md:text-5xl lg:text-6xl">
                 Trouvez{" "}
-                <span className="relative inline-block">
-                  <span className="text-sky-300">votre</span>
-                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
-                    <path d="M2 8C30 2 70 2 100 6C130 10 170 10 198 4" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" opacity="0.5" />
-                  </svg>
-                </span>
-                <br />
+                <span className="gradient-text">votre</span>
+                <br className="hidden md:block" />
                 voiture.
               </h1>
 
-              <p className="mt-6 max-w-lg text-lg text-sky-100/75">
+              <p className="mt-6 max-w-lg text-center text-lg text-sky-100/75 md:text-left">
                 Décrivez simplement ce que vous cherchez. Thiqti analyse les annonces,
                 compare les critères et vous recommande les meilleures correspondances.
               </p>
 
-              <div className="focus-depth mt-8 flex max-w-lg overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-1.5 backdrop-blur-xl shadow-2xl transition-shadow duration-300">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-sky-200/60" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && searchQuery.trim()) {
-                        window.location.href = `/results?q=${encodeURIComponent(searchQuery)}`;
-                      }
-                    }}
-                    placeholder='Ex: "Dacia Sandero moins de 150k"...'
-                    className="w-full bg-transparent py-3.5 pl-12 pr-11 text-sm text-white placeholder-sky-200/50 outline-none"
-                  />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                    <VoiceInput onTranscript={(text) => setSearchQuery(text)} className="[&_button]:text-sky-200/80 [&_button]:hover:text-white" />
+              <div className="w-full max-w-lg mx-auto mt-8">
+                <div className="focus-depth flex max-w-lg overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-1.5 backdrop-blur-xl shadow-2xl transition-shadow duration-300">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-sky-200/60" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && searchQuery.trim()) {
+                          window.location.href = `/results?q=${encodeURIComponent(searchQuery)}`;
+                        }
+                      }}
+                      placeholder='Ex: "Dacia Sandero moins de 150k"...'
+                      className="w-full bg-transparent py-3.5 pl-12 pr-11 text-sm text-white placeholder-sky-200/50 outline-none"
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      <VoiceInput onTranscript={(text) => setSearchQuery(text)} className="[&_button]:text-sky-200/80 [&_button]:hover:text-white" />
+                    </div>
                   </div>
+                  <Link
+                    href={searchQuery.trim() ? `/results?q=${encodeURIComponent(searchQuery)}` : "/results"}
+                    className="btn-press flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-brand-700 shadow-md transition hover:bg-sky-50 active:scale-[0.98]"
+                  >
+                    <Search className="h-4 w-4" />
+                    Rechercher
+                  </Link>
                 </div>
+
                 <Link
-                  href={searchQuery.trim() ? `/results?q=${encodeURIComponent(searchQuery)}` : "/results"}
-                  className="btn-press flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-brand-700 shadow-md transition hover:bg-sky-50 active:scale-[0.98]"
+                  href="/chat"
+                  className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm font-semibold text-brand-700 transition-all hover:bg-brand-100"
                 >
-                  <Search className="h-4 w-4" />
-                  Rechercher
+                  <MessageCircle className="h-4 w-4" />
+                  Parler avec Thiqti
                 </Link>
               </div>
 
@@ -281,7 +285,7 @@ export default function HomePage() {
                 ))}
               </div>
 
-              <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="mt-10 grid grid-cols-3 gap-4 text-center">
                 {STATS.map((stat, i) => (
                   <motion.div 
                     key={stat.label} 
@@ -289,17 +293,11 @@ export default function HomePage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex items-center gap-3"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-sky-300 backdrop-blur-sm">
-                      <stat.icon className="h-5 w-5" />
+                    <div className="text-2xl font-bold text-white leading-tight">
+                      <AnimatedCounter value={stat.value as number} suffix={stat.suffix || ""} />
                     </div>
-                    <div>
-                      <p className="text-lg font-bold text-white leading-tight">
-                        <AnimatedCounter value={stat.value as number} suffix={stat.suffix || ""} />
-                      </p>
-                      <p className="text-[9px] uppercase tracking-wider text-sky-200/60 leading-tight">{stat.label}</p>
-                    </div>
+                    <p className="mt-1 text-xs text-sky-200/60 leading-tight">{stat.label}</p>
                   </motion.div>
                 ))}
               </div>
@@ -376,6 +374,38 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---- MOBILE HERO CARD (hidden on desktop) ---- */}
+      <section className="lg:hidden bg-gradient-to-br from-sky-900 via-slate-900 to-slate-950 px-4 py-6">
+        <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-xl">
+          <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-gradient-to-br from-sky-400/20 to-transparent blur-[60px]" />
+          <div className="relative">
+            <span className="inline-block rounded-lg bg-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300">
+              {HERO_CARS[heroIndex].brand}
+            </span>
+            <h3 className="mt-3 font-serif text-2xl font-bold text-white">{HERO_CARS[heroIndex].model}</h3>
+            <p className="mt-1 text-sm text-sky-100/70">{HERO_CARS[heroIndex].tagline}</p>
+            <p className="mt-3 text-lg font-bold text-sky-200">{HERO_CARS[heroIndex].price}</p>
+            <Link
+              href={`/results?q=${encodeURIComponent(HERO_CARS[heroIndex].brand + " " + HERO_CARS[heroIndex].model)}`}
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25 active:scale-95"
+            >
+              Voir les offres
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-4 flex justify-center gap-2">
+            {HERO_CARS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setHeroIndex(i)}
+                className={`h-1.5 rounded-full transition-all ${i === heroIndex ? "w-5 bg-sky-400" : "w-1.5 bg-white/30"}`}
+                aria-label={`Voir ${HERO_CARS[i].brand} ${HERO_CARS[i].model}`}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -463,20 +493,19 @@ export default function HomePage() {
           </h2>
           <p className="mt-3 text-slate-500">Trouvez le type de voiture qui vous correspond</p>
         </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none md:grid md:grid-cols-3 md:overflow-visible lg:grid-cols-6">
           {CATEGORIES.map((cat) => (
-            <TiltCard key={cat.label} maxTilt={10} className="rounded-2xl">
-              <Link
-                href={`/results?q=${encodeURIComponent(cat.label)}`}
-                className="group relative block min-h-[44px] overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-elev-1 transition hover:border-brand-300 hover:shadow-elev-3"
-                aria-label={`${cat.label} — ${cat.count} véhicules`}
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} opacity-0 transition group-hover:opacity-[0.05]`} />
-                <div className="relative text-3xl">{cat.icon}</div>
-                <p className="relative mt-2 text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{cat.label}</p>
-                <p className="relative mt-0.5 text-xs text-slate-500">{cat.count}</p>
-              </Link>
-            </TiltCard>
+            <Link
+              key={cat.label}
+              href={`/results?q=${encodeURIComponent(cat.label)}`}
+              className="flex shrink-0 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all hover:border-brand-300 hover:shadow-md md:flex-col md:text-center"
+            >
+              <span className="text-2xl">{cat.icon}</span>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">{cat.label}</p>
+                <p className="text-xs text-slate-500">{cat.count}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
