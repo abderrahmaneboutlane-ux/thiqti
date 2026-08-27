@@ -71,11 +71,11 @@ export default function CarImage({ src, sources = [], alt, make, model, bodyType
 
   const all = useMemo(() => {
     const list: string[] = [];
-    if (src && src.startsWith("http")) {
+    if (src && (src.startsWith("http") || src.startsWith("/images/"))) {
       list.push(src);
     }
     for (const s of sources) {
-      if (s && s.startsWith("http") && !list.includes(s)) {
+      if (s && (s.startsWith("http") || s.startsWith("/images/")) && !list.includes(s)) {
         list.push(s);
       }
     }
