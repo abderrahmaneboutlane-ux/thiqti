@@ -5,19 +5,21 @@ import Link from "next/link";
 import {
   Fuel, Gauge, Send, Sparkles, ArrowRight, ShieldCheck,
   RefreshCw, Menu, X, Search, GitCompareArrows, User,
-  Trash2, MessageCircle, Plus, Pause, Phone, MessageSquare,
+  Trash2, MessageCircle, Plus, Pause, Phone, MessageSquare, UserPlus,
 } from "lucide-react";
 import CarImage from "@/components/CarImage";
 import Logo from "@/components/Logo";
 import VoiceInput from "@/components/VoiceInput";
 import { addHistory, getHistory, clearHistory } from "@/lib/history";
 import { intentToSearchParams } from "@/lib/nlp";
+import { useAnalytics } from "@/lib/useAnalytics";
 import VehicleDrawer from "./VehicleDrawer";
 import ComparisonPanel from "./ComparisonPanel";
 import MarkdownMessage from "./MarkdownMessage";
 import SkeletonCard from "./SkeletonCard";
 import EmptyState from "./EmptyState";
 import ThinkingWaves from "./ThinkingWaves";
+import LeadForm from "@/components/LeadForm";
 import { type ChatMessage, type ChatCar } from "@/types";
 
 function InventoryBadge({ type }: { type?: string }) {
@@ -44,6 +46,7 @@ interface ChatPlatformProps {
 }
 
 export default function ChatPlatform({ showSidebar = false, fullscreen = true }: ChatPlatformProps) {
+  const { track } = useAnalytics();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [results, setResults] = useState<ChatCar[] | null>(null);
   const [resultLimit, setResultLimit] = useState(4);
@@ -62,6 +65,9 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
 
   // Advisor state persistence for the API
   const [advisorState, setAdvisorState] = useState<{ collected: Record<string, any>; progress: number }>({ collected: {}, progress: 0 });
+
+  // Lead capture — show after 3+ results or advisor progress >= 80
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
 
   // Active criteria chips (derived from advisorState)
   const activeCriteria: string[] = Object.entries(advisorState.collected)
@@ -88,6 +94,7 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
   const [history, setHistory] = useState<string[]>([]);
 
   useEffect(() => {
+    track({ type: "chat_started" });
     setMessages([{
       id: idRef.current++,
       role: "bot",
@@ -123,6 +130,12 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
       const data = await res.json();
       setResults((data.results || []) as ChatCar[]);
       setResultLimit(4);
+      // Track search event
+      track({ type: "search_started", query, criteriaCount: Object.keys(intentParams || {}).length });
+      // Show lead capture when we have meaningful results
+      if ((data.results || []).length >= 2) {
+        setShowLeadCapture(true);
+      }
     } catch {
       setResults([]);
     } finally {
@@ -525,6 +538,16 @@ export default function ChatPlatform({ showSidebar = false, fullscreen = true }:
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+                {showLeadCapture && results.length >= 2 && (
+                  <div className="mt-4 rounded-2xl border border-brand-200 bg-white p-4 shadow-sm">
+                    <LeadForm
+                      vehicleId={results[0]?.id || ""}
+                      vehicleName={`${results[0]?.make} ${results[0]?.model}`}
+                      channel="chat"
+                      onSuccess={() => setShowLeadCapture(false)}
+                    />
                   </div>
                 )}
               </div>

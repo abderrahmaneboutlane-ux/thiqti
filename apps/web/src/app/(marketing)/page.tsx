@@ -8,6 +8,7 @@ import {
   Heart, GitCompareArrows,   Brain, Database, SlidersHorizontal, Gauge,
   MessageCircle,
 } from "lucide-react";
+import { usePageView } from "@/lib/useAnalytics";
 import CarImage from "@/components/CarImage";
 import Logo from "@/components/Logo";
 import Hero3D from "@/components/three/Hero3D";
@@ -90,6 +91,7 @@ function AnimatedCounter({ value, suffix }: { value: number, suffix: string }) {
 }
 
 export default function HomePage() {
+  usePageView("home");
   const [cars, setCars] = useState<HomeCar[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");

@@ -86,4 +86,5 @@ declare module "lucide-react" {
   export const CircleDollarSign: FC<SVGProps<SVGSVGElement> & { className?: string }>;
   export const Mail: FC<SVGProps<SVGSVGElement> & { className?: string }>;
   export const MoreHorizontal: FC<SVGProps<SVGSVGElement> & { className?: string }>;
+  export const UserPlus: FC<SVGProps<SVGSVGElement> & { className?: string }>;
 }

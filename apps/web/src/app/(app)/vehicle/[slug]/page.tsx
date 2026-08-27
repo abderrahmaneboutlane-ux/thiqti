@@ -14,6 +14,9 @@ import TiltCard from "@/components/ui/TiltCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerReveal from "@/components/StaggerReveal";
 import { type CarListing, type ReputationData, type MarocReputationData, type MarocBrandData } from "@/types";
+import LeadForm from "@/components/LeadForm";
+import { trackEvent } from "@/lib/analytics";
+import { usePageView } from "@/lib/useAnalytics";
 
 const MIN_REVIEWS = 30;
 const RELIABILITY_COLORS = {
@@ -23,10 +26,17 @@ const RELIABILITY_COLORS = {
 };
 
 export default function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
+  usePageView("vehicle_detail");
   const [car, setCar] = useState<CarListing | null>(null);
   const [activeTab, setActiveTab] = useState<"specs" | "reputation" | "offers">("specs");
   const [fav, setFav] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (car?.id) {
+      trackEvent({ type: "vehicle_viewed", vehicleId: car.id, source: "search", ts: Date.now() });
+    }
+  }, [car?.id]);
   const [reputation, setReputation] = useState<ReputationData | null>(null);
   const [loadingRep, setLoadingRep] = useState(false);
   const [mainImg, setMainImg] = useState("");
@@ -492,6 +502,16 @@ export default function VehiclePage({ params }: { params: Promise<{ slug: string
                   </a>
                 </div>
               </div>
+              </ScrollReveal>
+
+              <ScrollReveal delay={450}>
+                <div className="card-3d specular-shine p-6 border-brand-200/80 shadow-elev-3">
+                  <LeadForm
+                    vehicleId={car.id || ""}
+                    vehicleName={car.title}
+                    channel="vehicle_detail"
+                  />
+                </div>
               </ScrollReveal>
             </div>
           </div>

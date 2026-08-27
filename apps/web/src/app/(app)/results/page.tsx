@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { usePageView } from "@/lib/useAnalytics";
 import {
   Search, SlidersHorizontal, MapPin, Fuel, Heart, Grid3X3, List,
   ChevronDown, GitCompareArrows, X, Sparkles, BadgeCheck,
@@ -68,6 +69,7 @@ function extractDisplayCriteria(criteria: SearchCriteria): { key: string; label:
 }
 
 export default function ResultsPage() {
+  usePageView("results");
   const [query, setQuery] = useState("");
   const [cars, setCars] = useState<CarListing[]>([]);
   const [loading, setLoading] = useState(true);

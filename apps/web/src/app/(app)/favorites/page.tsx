@@ -13,8 +13,10 @@ import { AnimatePresence } from "framer-motion";
 import { Reorder } from "framer-motion";
 import { type CarListing } from "@/types";
 import { useFavorites } from "@/hooks/useFavorites";
+import { usePageView } from "@/lib/useAnalytics";
 
 export default function FavoritesPage() {
+  usePageView("favorites");
   const { favorites, loaded, removeFavorite, count } = useFavorites();
   const [cars, setCars] = useState<CarListing[]>([]);
 
