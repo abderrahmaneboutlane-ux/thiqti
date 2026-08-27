@@ -132,6 +132,9 @@ const BAD_URL_PATTERNS = [
   /dummy/i,
   /sample/i,
   /example/i,
+  /imagin\.studio/i,   // CDN is dead — hotlink protection returns empty body
+  /cdn\.imagin/i,
+  /autoevolution\.com/i, // Returns empty body
 ];
 
 const VALID_EXTENSIONS = /\.(jpe?g|png|webp|gif|bmp|tiff?)$/i;

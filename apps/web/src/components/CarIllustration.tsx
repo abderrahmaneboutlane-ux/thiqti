@@ -203,7 +203,8 @@ export default function CarIllustration({ make, model, className = "" }: CarIllu
     drawSedan(colors, id);
 
   return (
-    <svg viewBox="0 0 180 120" className={className} xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 180 120" className={className} xmlns="http://www.w3.org/2000/svg" role="img" aria-label={`${make} ${model} illustration`}>
+      <title>{`${make} ${model}`}</title>
       <defs>
         <linearGradient id={`bg-${id}`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor={colors.bg} />

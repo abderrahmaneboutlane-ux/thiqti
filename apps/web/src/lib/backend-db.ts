@@ -110,6 +110,7 @@ function simpleHash(str: string): number {
 }
 
 // Master pool of 60 verified Unsplash car photos — all HTTP 200 confirmed
+// Used ONLY as fallback when a vehicle has no real images
 const CAR_PHOTOS = [
   "photo-1494976388531-d1058494cdd8","photo-1502877338535-766e1452684a",
   "photo-1503376780353-7e6692767b70","photo-1519641471654-76ce0107ad1b",
@@ -138,14 +139,35 @@ const CAR_PHOTOS = [
   "photo-1619682817481-e994891cd1f5","photo-1625047509248-ec889cbff17f",
   "photo-1588421357574-87938a86fa28","photo-1612825173281-9a193378527e",
   "photo-1590362891991-f776e747a588","photo-1568792923760-d70635a89fdc",
-  "photo-1621600411688-4be93cd68504","photo-1625047509248-ec889cbff17f",
-  "photo-1494976388531-d1058494cdd8","photo-1552519507-da3b142c6e3d",
-  "photo-1541899481282-d53bffe3c35d","photo-1503376780353-7e6692767b70",
+  "photo-1621600411688-4be93cd68504","photo-1551830820-330a71b99659",
+  "photo-1553440569-bcc63803a83d","photo-1485291571150-772bcfc10da5",
+  "photo-1469854523086-cc02fe5d8800","photo-1492144534655-ae79c964c9d7",
 ];
 
-function getVehicleImageUrl(_make?: string, _model?: string, _bodyType?: string, hash?: number): string {
+// Generate a deterministic fallback image for a vehicle
+function getFallbackImage(_make?: string, _model?: string, _bodyType?: string, hash?: number): string {
   const idx = (hash || 0) % CAR_PHOTOS.length;
   return `https://images.unsplash.com/${CAR_PHOTOS[idx]}?w=600&auto=format&fit=crop&q=80`;
+}
+
+// Patterns that indicate broken/unusable image URLs
+const BROKEN_URL_PATTERNS = [
+  /imagin\.studio/i,   // CDN is dead — hotlink protection returns empty body
+  /cdn\.imagin/i,
+  /autoevolution\.com/i, // Returns empty body
+];
+
+function isBrokenUrl(url: string): boolean {
+  return BROKEN_URL_PATTERNS.some(p => p.test(url));
+}
+
+// Check if a URL looks like a real car image (not a logo, icon, placeholder)
+function isLikelyValidImage(url: string): boolean {
+  if (!url || !url.startsWith("http")) return false;
+  if (isBrokenUrl(url)) return false;
+  // Reject SVGs, data URIs, tracking pixels
+  if (/\.svg($|\?)|data:image|pixel|tracking|spacer|blank/i.test(url)) return false;
+  return true;
 }
 
 export function loadSeedData() {
@@ -166,22 +188,53 @@ export function loadSeedData() {
         const parsed = JSON.parse(raw);
         _vehicles = parsed.vehicles || [];
         _reviews = parsed.reviews || [];
+
+        // Stats for logging
+        let preserved = 0, fallbackUsed = 0;
+
         _vehicles.forEach((v: any) => {
-          const realPhotos = (v.photos || []).filter((p: string) => p && !p.includes("imagin.studio") && p.startsWith("http"));
-          const imaginPhotos = (v.photos || []).filter((p: string) => p && p.includes("imagin.studio"));
-          v.photos = [...realPhotos, ...imaginPhotos];
+          // Step 1: Clean photos — remove broken URLs (imagin.studio, autoevolution, etc.)
+          const rawPhotos: string[] = (v.photos || []).filter((p: string) => isLikelyValidImage(p));
 
-          // Assign a unique, consistent image per vehicle from our pool
-          const vehicleHash = simpleHash(v.id || v.name || String(Math.random()));
-          const assignedUrl = getVehicleImageUrl(v.make, v.model, v.body_type, vehicleHash);
-          v.image_url = assignedUrl;
+          // Step 2: Determine primary image
+          // Prefer original image_url if it's valid, then first valid photo
+          const originalImageValid = isLikelyValidImage(v.image_url);
+          const firstPhotoValid = rawPhotos.length > 0 && isLikelyValidImage(rawPhotos[0]);
 
-          // Also assign 2 more unique photos for gallery
-          const assigned2 = getVehicleImageUrl(v.make, v.model, v.body_type, vehicleHash + 1);
-          const assigned3 = getVehicleImageUrl(v.make, v.model, v.body_type, vehicleHash + 2);
-          const extraPhotos = [assigned2, assigned3].filter((p) => p !== assignedUrl);
-          v.photos = [assignedUrl, ...extraPhotos, ...(v.photos || []).slice(0, 2)];
+          if (originalImageValid) {
+            // Original image is good — keep it, use it as primary
+            v.image_url = v.image_url;
+          } else if (firstPhotoValid) {
+            // Original image is broken, but we have valid photos — use first photo as primary
+            v.image_url = rawPhotos[0];
+          } else {
+            // No valid images at all — use fallback pool
+            const vehicleHash = simpleHash(v.id || v.name || String(Math.random()));
+            v.image_url = getFallbackImage(v.make, v.model, v.body_type, vehicleHash);
+            fallbackUsed++;
+          }
+
+          // Step 3: Build photos array
+          // Keep valid original photos, supplement with fallback if <2
+          const validPhotos = rawPhotos.filter(p => p !== v.image_url);
+          const allPhotos = [v.image_url, ...validPhotos];
+
+          // If we have <2 photos, add from fallback pool (deterministic, different from primary)
+          if (allPhotos.length < 2) {
+            const vehicleHash = simpleHash(v.id || v.name || String(Math.random()));
+            for (let i = 1; i <= 2; i++) {
+              const fallback = getFallbackImage(v.make, v.model, v.body_type, vehicleHash + i);
+              if (!allPhotos.includes(fallback)) {
+                allPhotos.push(fallback);
+              }
+            }
+          }
+
+          v.photos = [...new Set(allPhotos)].slice(0, 6); // Max 6 photos, deduplicated
+          preserved++;
         });
+
+        console.log(`[Seed] Loaded ${_vehicles.length} vehicles (${preserved} processed, ${fallbackUsed} using fallback images)`);
         if (_vehicles.length > 0) break;
       }
     }
@@ -267,7 +320,7 @@ function normalizeUnifiedCar(car: UnifiedCar) {
 }
 
 // --- NLP: unified parser from lib/nlp.ts ---
-import { parseQuery as _parseQuery, type SearchCriteria as NlpSearchCriteria } from "./nlp";
+import { parseQuery as _parseQuery, mergeSearchIntent as _mergeSearchIntent, type SearchCriteria as NlpSearchCriteria } from "./nlp";
 
 function parseNLPQuery(query: string): {
   normalizedQuery: string;
@@ -600,57 +653,104 @@ export async function handleChatService(params: {
   history?: { role: string; content: string }[];
   advisorState?: {
     collected?: Record<string, any>;
+    searchIntent?: any; // SearchIntent from nlp.ts
     step?: number;
     progress?: number;
   };
 }) {
   loadSeedData();
   const { message = "", sessionId = "default_session", history = [], advisorState = {} } = params;
-  const collected = { ...(advisorState.collected || {}) };
 
-  const parsed = parseNLPQuery(message);
-  const { extractedCriteria, language } = parsed;
+  // Detect language
+  const rawLower = message.toLowerCase().trim();
+  const isArabicScript = /[\u0600-\u06FF]/.test(rawLower);
+  const isDarijaWords = /(bghit|dial|dyal|wach|chhal|mazot|tomobil|rkhis|mlyon|famiya|kayn)/i.test(rawLower);
+  const language = isArabicScript ? "ar" : isDarijaWords ? "darija" : "fr";
 
-  Object.assign(collected, extractedCriteria);
+  // Build progressive search intent using mergeSearchIntent
+  const prevIntent = advisorState.searchIntent || { confidence: {} };
+  const intent = _mergeSearchIntent(prevIntent, message);
 
-  // Count how many criteria we have
-  const criteriaCount = Object.values(collected).filter((v) => v !== null && v !== undefined && v !== "").length;
+  // Build collected criteria from intent for backward compatibility
+  const collected: Record<string, any> = {};
+  if (intent.fuel) collected.fuel = intent.fuel;
+  if (intent.bodyType) collected.body = intent.bodyType;
+  if (intent.transmission) collected.transmission = intent.transmission;
+  if (intent.brand) collected.brand = intent.brand;
+  if (intent.model) collected.model = intent.model;
+  if (intent.city) collected.city = intent.city;
+  if (intent.maxPrice) collected.budget_max = intent.maxPrice;
+  if (intent.minPrice) collected.budget_min = intent.minPrice;
+  if (intent.minYear) collected.min_year = intent.minYear;
+  if (intent.maxMileage) collected.max_km = intent.maxMileage;
+  if (intent.userIntent) collected.intent = intent.userIntent;
 
+  // Count criteria with confidence > 0.5
+  const confidentCriteria = Object.entries(intent.confidence)
+    .filter(([_, conf]) => (conf as number) >= 0.5)
+    .length;
+
+  // Determine what to do next
   let nextQuestion = "";
   let progress = 20;
   let search = false;
 
-  // Auto-search when 3+ criteria collected (sufficient for meaningful results)
-  if (criteriaCount >= 3) {
-    nextQuestion = language === "darija"
-      ? "Koulchi wajed ! Ha houma a7san l-khiyarat li lqit lik :"
-      : "Parfait ! Voici les meilleures sélections trouvées selon vos critères :";
-    progress = 100;
-    search = true;
-  } else if (!collected.body) {
-    nextQuestion = language === "darija"
-      ? "Chnou naw3 dial karosa li katfeḍḍel ? (SUV, Citadine, Berline, Monospace...)"
-      : "Quel type de carrosserie recherchez-vous ? (SUV, Citadine, Berline, Familiale...)";
-    progress = 25;
-  } else if (!collected.budget_max) {
-    nextQuestion = language === "darija"
-      ? "Chhal l-budget l-max dialek b dirham (ex: 200 000 DH) ?"
-      : "Quel est votre budget maximum en dirhams ?";
-    progress = 50;
-  } else if (!collected.fuel) {
-    nextQuestion = language === "darija"
-      ? "Chnou l-carburant li bghiti ? (Diesel, Hybride, Essence, Électrique)"
-      : "Quelle motorisation préférez-vous ? (Diesel, Hybride, Essence, Électrique)";
-    progress = 75;
+  // Smart progression: search when we have enough criteria, ask for missing important ones
+  if (confidentCriteria >= 2) {
+    // We have enough to search meaningfully
+    const missingImportant: string[] = [];
+    if (!intent.fuel) missingImportant.push(language === "darija" ? "carburant (Diesel/Essence/Hybride)" : "motorisation (Diesel, Essence, Hybride)");
+    if (!intent.maxPrice && !intent.minPrice) missingImportant.push(language === "darija" ? "budget" : "budget");
+
+    if (missingImportant.length > 0 && confidentCriteria < 4) {
+      // Ask for one more important criterion before searching
+      nextQuestion = language === "darija"
+        ? `Fhamtek ! ${missingImportant[0]} ? Wala nbda nqaleb hakka ?`
+        : `Bien noté ! Quel ${missingImportant[0]} recherchez-vous ? Ou je commence déjà à chercher ?`;
+      progress = Math.min(90, 40 + confidentCriteria * 15);
+    } else {
+      // Enough criteria — search now
+      nextQuestion = language === "darija"
+        ? "Koulchi wajed ! Ha houma a7san l-khiyarat li lqit lik :"
+        : "Parfait ! Voici les meilleures sélections trouvées selon vos critères :";
+      progress = 100;
+      search = true;
+    }
+  } else if (confidentCriteria === 1) {
+    // We have one criterion — ask for more context naturally
+    if (intent.fuel) {
+      nextQuestion = language === "darija"
+        ? `Zwin ! Diesel ${intent.userIntent === "family" ? "dial l3a2ila" : ""}. Chhal l-budget dialek ?`
+        : `Bien ! Diesel ${intent.userIntent === "family" ? "pour la famille" : ""}. Quel est votre budget approximatif ?`;
+    } else if (intent.bodyType) {
+      nextQuestion = language === "darija"
+        ? `Zwin ! ${intent.bodyType}. Chnou l-carburant li bghiti ?`
+        : `Bien ! ${intent.bodyType}. Quelle motorisation préférez-vous ?`;
+    } else if (intent.maxPrice || intent.minPrice) {
+      nextQuestion = language === "darija"
+        ? `Fhamtek ! Budget ${intent.maxPrice ? `jusqu'à ${intent.maxPrice} DH` : `à partir de ${intent.minPrice} DH`}. Chnou l-carburant ?`
+        : `Compris ! Budget ${intent.maxPrice ? `jusqu'à ${intent.maxPrice} DH` : `à partir de ${intent.minPrice} DH`}. Quelle motorisation ?`;
+    } else {
+      nextQuestion = language === "darija"
+        ? "Fhamtek ! Chnou l-7aja l-o5ra li katfeḍḍel ?"
+        : "Compris ! Qu'est-ce qui est important pour vous ?";
+    }
+    progress = 35;
   } else {
+    // No clear criteria yet — welcome and ask naturally
     nextQuestion = language === "darija"
-      ? "Koulchi wajed ! Ha houma a7san l-khiyarat li lqit lik :"
-      : "Parfait ! Voici les meilleures sélections trouvées selon vos critères :";
-    progress = 100;
-    search = true;
+      ? "Marhba bik ! Chnou katfeḍḍel f-tomobil ? (Carburant, Budget, Type...)"
+      : "Bonjour ! Qu'est-ce que vous recherchez ? (Type, Motorisation, Budget...)";
+    progress = 15;
   }
 
-  // Use history context: detect language shift if user switches between FR/Darija/AR
+  // Determine if we should show results
+  if (confidentCriteria >= 3 || search) {
+    search = true;
+    progress = 100;
+  }
+
+  // Use history context for language
   const lastUserMsgs = history.filter((h) => h.role === "user").slice(-3);
   let contextLanguage = language;
   for (const msg of lastUserMsgs) {
@@ -658,27 +758,28 @@ export async function handleChatService(params: {
     else if (/[\u0600-\u06FF]/.test(msg.content)) contextLanguage = "ar";
   }
 
-  const searchRes = await searchVehiclesService({
-    body_type: collected.body,
-    fuel: collected.fuel,
-    max_price: collected.budget_max,
-    make: collected.brand,
-    inventory_type: collected.inventory,
-    transmission: collected.transmission,
-    city: collected.city,
-    min_year: collected.min_year,
-    max_km: collected.max_km,
-    limit: search ? 4 : 2
-  });
+  // Search vehicles using intent
+  const searchParams: Record<string, any> = { limit: search ? 6 : 2 };
+  if (intent.fuel) searchParams.fuel = intent.fuel;
+  if (intent.bodyType) searchParams.body_type = intent.bodyType;
+  if (intent.transmission) searchParams.transmission = intent.transmission;
+  if (intent.brand) searchParams.make = intent.brand;
+  if (intent.model) searchParams.model = intent.model;
+  if (intent.city) searchParams.city = intent.city;
+  if (intent.maxPrice) searchParams.max_price = intent.maxPrice;
+  if (intent.minPrice) searchParams.min_price = intent.minPrice;
+  if (intent.minYear) searchParams.min_year = intent.minYear;
+  if (intent.maxMileage) searchParams.max_km = intent.maxMileage;
+
+  const searchRes = await searchVehiclesService(searchParams);
 
   let vehicles = searchRes.vehicles;
-  if (vehicles.length === 0 && (collected.body || collected.fuel || collected.brand)) {
-    const fallbackRes = await searchVehiclesService({
-      body_type: collected.body,
-      fuel: collected.body ? undefined : collected.fuel,
-      make: collected.brand,
-      limit: 4
-    });
+  if (vehicles.length === 0 && (intent.bodyType || intent.fuel || intent.brand)) {
+    // Progressive fallback: relax filters
+    const fallbackParams: Record<string, any> = { limit: 4 };
+    if (intent.bodyType) fallbackParams.body_type = intent.bodyType;
+    if (intent.brand) fallbackParams.make = intent.brand;
+    const fallbackRes = await searchVehiclesService(fallbackParams);
     vehicles = fallbackRes.vehicles;
     if (vehicles.length === 0) {
       const topRes = await searchVehiclesService({ limit: 4 });
@@ -686,26 +787,32 @@ export async function handleChatService(params: {
     }
   }
 
+  // Build natural response
   let replyText = "";
-  if (contextLanguage === "darija") {
-    if (vehicles.length > 0) {
-      replyText = `Lqit lik ${vehicles.length} tomobilat mzyanin bzaf li kaywaslou l-talab dialek ! ${nextQuestion}`;
+  const criteriaSummary = buildCriteriaSummary(intent, contextLanguage);
+
+  if (vehicles.length > 0) {
+    if (contextLanguage === "darija") {
+      replyText = `Lqit lik ${vehicles.length} tomobilat ${criteriaSummary}li kaywaslou l-talab dialek ! ${nextQuestion}`;
+    } else if (contextLanguage === "ar") {
+      replyText = `وجدت لك ${vehicles.length} سيارات ${criteriaSummary}تتناسب مع بحثك ! ${nextQuestion}`;
     } else {
-      replyText = `Marhba bik ! ${nextQuestion}`;
+      replyText = `J'ai trouvé ${vehicles.length} véhicules ${criteriaSummary}qui correspondent à votre recherche ! ${nextQuestion}`;
     }
   } else {
-    if (vehicles.length > 0) {
-      replyText = `J'ai trouvé ${vehicles.length} véhicules parfaitement adaptés à vos besoins ! ${nextQuestion}`;
+    if (contextLanguage === "darija") {
+      replyText = `Marhba bik f-Thiqti ! ${nextQuestion}`;
     } else {
-      replyText = `Bonjour ! Je suis votre conseiller automobile Thiqti. ${nextQuestion}`;
+      replyText = `Bienvenue sur Thiqti ! ${nextQuestion}`;
     }
   }
 
-  const quickReplies = [
-    collected.body ? (collected.fuel ? "Comparer les modèles" : "Option Hybride") : "SUV & Familiale",
-    "Moins de 200 000 DH",
-    "Voir les véhicules neufs"
-  ];
+  // Contextual quick replies based on what's missing
+  const quickReplies: string[] = [];
+  if (!intent.fuel) quickReplies.push(contextLanguage === "darija" ? "Diesel" : "Diesel");
+  if (!intent.bodyType) quickReplies.push(contextLanguage === "darija" ? "SUV" : "SUV / Familiale");
+  if (!intent.maxPrice) quickReplies.push(contextLanguage === "darija" ? "Moins de 200 000 DH" : "Moins de 200 000 DH");
+  if (intent.fuel && intent.bodyType) quickReplies.push(contextLanguage === "darija" ? "Comparer les modèles" : "Comparer les modèles");
 
   _conversations.push({
     id: "conv_" + Date.now(),
@@ -722,15 +829,29 @@ export async function handleChatService(params: {
     reply: replyText,
     criteria: collected,
     vehicles,
-    quickReplies,
+    quickReplies: quickReplies.slice(0, 4),
     search,
     intent: "search",
     advisorState: {
       collected,
+      searchIntent: intent,
       nextQuestion,
       progress
     }
   };
+}
+
+// Build a natural-language summary of active criteria
+function buildCriteriaSummary(intent: any, language: string): string {
+  const parts: string[] = [];
+  if (intent.fuel) parts.push(language === "darija" ? `diesel ${intent.fuel === "Diesel" ? "" : intent.fuel}` : `en ${intent.fuel.toLowerCase()}`);
+  if (intent.bodyType) parts.push(intent.bodyType.toLowerCase());
+  if (intent.brand) parts.push(intent.brand);
+  if (intent.maxPrice) parts.push(language === "darija" ? `moins de ${intent.maxPrice.toLocaleString("fr-FR")} DH` : ` sous ${intent.maxPrice.toLocaleString("fr-FR")} DH`);
+  if (intent.city) parts.push(`à ${intent.city}`);
+  if (intent.userIntent === "family") parts.push(language === "darija" ? "dial l3a2ila" : "pour la famille");
+  if (parts.length === 0) return "";
+  return parts.join(", ") + " ";
 }
 
 export async function getCompareService(ids: string[]) {

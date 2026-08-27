@@ -12,6 +12,7 @@ interface CarImageProps {
   model: string;
   bodyType?: string;
   className?: string;
+  priority?: boolean;
 }
 
 const BRAND_HD_IMAGES: Record<string, string> = {
@@ -56,13 +57,17 @@ const BODY_HD_IMAGES: Record<string, string> = {
   utilitaire: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&auto=format&fit=crop&q=80"
 };
 
-export default function CarImage({ src, sources = [], alt, make, model, bodyType, className = "" }: CarImageProps) {
+export default function CarImage({ src, sources = [], alt, make, model, bodyType, className = "", priority = false }: CarImageProps) {
   const [index, setIndex] = useState(0);
   const [fallbackFailed, setFallbackFailed] = useState(false);
 
+  // For internal lookups (lowercase keys)
   const cleanMake = (make || "").toLowerCase().trim();
   const cleanBody = (bodyType || "").toLowerCase().trim();
   const fallbackHd = BRAND_HD_IMAGES[cleanMake] || BODY_HD_IMAGES[cleanBody] || BRAND_HD_IMAGES.default;
+
+  // For CarIllustration (title-case keys in BRAND_COLORS)
+  const illustrationMake = (make || "").trim();
 
   const all = useMemo(() => {
     const list: string[] = [];
@@ -95,14 +100,13 @@ export default function CarImage({ src, sources = [], alt, make, model, bodyType
         src={all[index]}
         alt={alt || `${make} ${model}`}
         fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         className={`object-cover ${className}`}
         onError={handleError}
-        unoptimized
-        priority={false}
+        priority={priority}
       />
     );
   }
 
-  return <CarIllustration make={make} model={model} className={className} />;
+  return <CarIllustration make={illustrationMake} model={model} className={className} />;
 }
