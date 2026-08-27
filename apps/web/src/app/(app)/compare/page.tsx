@@ -238,7 +238,7 @@ export default function ComparePage() {
                     <button onClick={() => removeCar(v.id)} aria-label="Retirer" className="absolute right-2 top-2 rounded-xl p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors z-10">
                       <X className="h-4 w-4" />
                     </button>
-                    <CarImage src={v.image} alt={v.title} make={v.make} model={v.model} className="mx-auto h-28 w-44 rounded-xl object-cover shadow-elev-2" />
+                    <CarImage src={v.image} sources={v.photos} alt={v.title} make={v.make} model={v.model} bodyType={v.bodyType} className="mx-auto h-28 w-44 rounded-xl object-cover shadow-elev-2" />
                     <p className="mt-2 text-sm font-bold text-slate-900">{v.title}</p>
                     <Link href={`/vehicle/${v.id}`} className="mt-1 inline-block text-xs font-semibold text-brand-600 hover:underline">Voir fiche détail</Link>
                   </th>

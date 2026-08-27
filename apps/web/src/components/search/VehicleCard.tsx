@@ -24,6 +24,7 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
         {vehicle.image ? (
           <CarImage
             src={vehicle.image}
+            sources={vehicle.photos}
             alt={`${vehicle.make} ${vehicle.model} ${vehicle.year}`}
             make={vehicle.make}
             model={vehicle.model}

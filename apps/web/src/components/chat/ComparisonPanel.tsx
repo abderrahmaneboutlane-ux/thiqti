@@ -83,9 +83,11 @@ export default function ComparisonPanel({ vehicles, isOpen, onClose, onRemove }:
                       <div className="relative h-16 w-24 overflow-hidden rounded-lg bg-slate-50">
                         <CarImage
                           src={v.image}
+                          sources={v.photos}
                           alt={`${v.make} ${v.model}`}
                           make={v.make}
                           model={v.model}
+                          bodyType={v.bodyType}
                           className="h-full w-full object-cover"
                         />
                       </div>

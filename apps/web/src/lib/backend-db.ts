@@ -152,8 +152,6 @@ function getFallbackImage(_make?: string, _model?: string, _bodyType?: string, h
 
 // Patterns that indicate broken/unusable image URLs
 const BROKEN_URL_PATTERNS = [
-  /imagin\.studio/i,   // CDN is dead — hotlink protection returns empty body
-  /cdn\.imagin/i,
   /autoevolution\.com/i, // Returns empty body
 ];
 
@@ -189,52 +187,53 @@ export function loadSeedData() {
         _vehicles = parsed.vehicles || [];
         _reviews = parsed.reviews || [];
 
-        // Stats for logging
-        let preserved = 0, fallbackUsed = 0;
+        let imaginUsed = 0, poolUsed = 0;
 
         _vehicles.forEach((v: any) => {
-          // Step 1: Clean photos — remove broken URLs (imagin.studio, autoevolution, etc.)
-          const rawPhotos: string[] = (v.photos || []).filter((p: string) => isLikelyValidImage(p));
+          const originalPhotos: string[] = v.photos || [];
 
-          // Step 2: Determine primary image
-          // Prefer original image_url if it's valid, then first valid photo
-          const originalImageValid = isLikelyValidImage(v.image_url);
-          const firstPhotoValid = rawPhotos.length > 0 && isLikelyValidImage(rawPhotos[0]);
+          // STEP 1: Find the imagin.studio URL from original photos
+          // These have correct make/model params (e.g., make=Dacia&modelFamily=Sandero)
+          // Even though CDN is dead, CarImage fallback chain will show correct brand-colored SVG
+          const imaginUrl = originalPhotos.find((p: string) => /imagin\.studio/i.test(p));
 
-          if (originalImageValid) {
-            // Original image is good — keep it, use it as primary
-            v.image_url = v.image_url;
-          } else if (firstPhotoValid) {
-            // Original image is broken, but we have valid photos — use first photo as primary
-            v.image_url = rawPhotos[0];
+          // STEP 2: Find any working HTTP photo from original data (not pool, not broken)
+          const realPhoto = originalPhotos.find((p: string) =>
+            p.startsWith("http") && !/imagin\.studio|autoevolution/i.test(p) && !p.includes("unsplash.com/photo-")
+          );
+
+          // STEP 3: Determine primary image_url
+          if (imaginUrl) {
+            // Use imagin.studio URL — has correct make/model, CarImage will fallback to brand SVG
+            v.image_url = imaginUrl;
+            imaginUsed++;
+          } else if (realPhoto) {
+            // Use a real photo from the source
+            v.image_url = realPhoto;
           } else {
-            // No valid images at all — use fallback pool
+            // No imagin URL and no real photo — use pool (last resort)
             const vehicleHash = simpleHash(v.id || v.name || String(Math.random()));
             v.image_url = getFallbackImage(v.make, v.model, v.body_type, vehicleHash);
-            fallbackUsed++;
+            poolUsed++;
           }
 
-          // Step 3: Build photos array
-          // Keep valid original photos, supplement with fallback if <2
-          const validPhotos = rawPhotos.filter(p => p !== v.image_url);
-          const allPhotos = [v.image_url, ...validPhotos];
+          // STEP 4: Build photos array — imagin URL first, then any real photos, then pool
+          const otherPhotos = originalPhotos.filter((p: string) => p !== v.image_url && !/imagin\.studio/i.test(p));
+          const allPhotos = [v.image_url, ...otherPhotos.slice(0, 4)];
 
-          // If we have <2 photos, add from fallback pool (deterministic, different from primary)
-          if (allPhotos.length < 2) {
+          // Ensure at least 3 photos for gallery
+          if (allPhotos.length < 3) {
             const vehicleHash = simpleHash(v.id || v.name || String(Math.random()));
-            for (let i = 1; i <= 2; i++) {
+            for (let i = 1; allPhotos.length < 3; i++) {
               const fallback = getFallbackImage(v.make, v.model, v.body_type, vehicleHash + i);
-              if (!allPhotos.includes(fallback)) {
-                allPhotos.push(fallback);
-              }
+              if (!allPhotos.includes(fallback)) allPhotos.push(fallback);
             }
           }
 
-          v.photos = [...new Set(allPhotos)].slice(0, 6); // Max 6 photos, deduplicated
-          preserved++;
+          v.photos = [...new Set(allPhotos)].slice(0, 6);
         });
 
-        console.log(`[Seed] Loaded ${_vehicles.length} vehicles (${preserved} processed, ${fallbackUsed} using fallback images)`);
+        console.log(`[Seed] Loaded ${_vehicles.length} vehicles (imagin URLs: ${imaginUsed}, pool fallback: ${poolUsed})`);
         if (_vehicles.length > 0) break;
       }
     }
@@ -280,12 +279,34 @@ function normalizeVehicle(v: Vehicle) {
 
 // --- Normalize UnifiedCar (from scrapers) → same shape as normalizeVehicle output ---
 function normalizeUnifiedCar(car: UnifiedCar) {
+  // Extract model from title when model field is a UUID/hash (common in scraped data)
+  // Title format: "Make Model Trim Year" e.g., "Opel Mokka GS Line 2023"
+  let model = car.model || "";
+  const isUuidOrHash = /^[0-9a-f]{10,}$/i.test(model) || /^\d{5,}$/.test(model);
+  if (isUuidOrHash && car.title) {
+    const titleParts = car.title.split(/\s+/);
+    const makeWord = car.make || "";
+    const makeIdx = titleParts.findIndex(p => p.toLowerCase() === makeWord.toLowerCase());
+    if (makeIdx >= 0 && makeIdx + 1 < titleParts.length) {
+      // Take words after make until we hit a year or trim keyword
+      const modelWords: string[] = [];
+      for (let i = makeIdx + 1; i < titleParts.length; i++) {
+        if (/^\d{4}$/.test(titleParts[i])) break; // year
+        modelWords.push(titleParts[i]);
+      }
+      if (modelWords.length > 0) model = modelWords.join(" ");
+    }
+  }
+
+  // Determine best image — prefer car.image, fallback to first photo
+  const bestImage = car.image || (car.photos && car.photos.length > 0 ? car.photos[0] : "");
+
   return {
     id: car.id,
     slug: car.id,
     name: car.title,
     make: car.make,
-    model: car.model,
+    model,
     year: car.year,
     price_mad: car.price,
     price_display: car.priceFormatted,
@@ -294,7 +315,7 @@ function normalizeUnifiedCar(car: UnifiedCar) {
     body_type: car.bodyType,
     transmission: car.transmission,
     city: car.city,
-    image_url: car.image,
+    image_url: bestImage,
     photos: car.photos || [],
     score: car.score,
     score_normalized: Math.round((car.score / 100) * 10 * 10) / 10,
@@ -308,7 +329,7 @@ function normalizeUnifiedCar(car: UnifiedCar) {
     updated_at: car.scrapedAt,
     // Frontend aliases (same as normalizeVehicle)
     title: car.title,
-    image: car.image,
+    image: bestImage,
     price: car.price,
     priceFormatted: car.priceFormatted,
     bodyType: car.bodyType,

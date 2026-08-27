@@ -13,6 +13,7 @@ export interface MockVehicle {
   matchPercent: number;
   badge: string;
   image: string;
+  photos?: string[];
   reviews: { score: number; total: number; window: string } | null;
 }
 
