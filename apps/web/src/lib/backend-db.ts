@@ -542,6 +542,17 @@ export async function searchVehiclesService(params: {
   const fuels = Object.entries(fuelCounts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
   const bodyTypes = Object.entries(bodyCounts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
 
+  // Sort: scraped vehicles with real local photos first, then by score
+  results.sort((a, b) => {
+    const aLocal = a.image_url && a.image_url.startsWith("/images/") ? 1 : 0;
+    const bLocal = b.image_url && b.image_url.startsWith("/images/") ? 1 : 0;
+    if (aLocal !== bLocal) return bLocal - aLocal;
+    const aHasPhoto = a.photos && a.photos.length > 0 && !a.photos[0]?.includes("unsplash.com/photo-") ? 1 : 0;
+    const bHasPhoto = b.photos && b.photos.length > 0 && !b.photos[0]?.includes("unsplash.com/photo-") ? 1 : 0;
+    if (aHasPhoto !== bHasPhoto) return bHasPhoto - aHasPhoto;
+    return (b.score || 0) - (a.score || 0);
+  });
+
   const total = results.length;
   const pageNum = Math.max(1, Number(page));
   const limitNum = Math.min(2000, Math.max(1, Number(limit)));
