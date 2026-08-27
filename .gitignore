@@ -48,3 +48,7 @@ venv/
 
 # Misc
 *.log
+
+# Downloaded scraped photos (regenerate with: npx tsx scripts/download-photos.ts)
+apps/web/public/images/vehicles/
+apps/web/.cache/
