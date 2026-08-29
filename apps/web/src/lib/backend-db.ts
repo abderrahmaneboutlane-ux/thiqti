@@ -377,6 +377,46 @@ function parseNLPQuery(query: string): {
   };
 }
 
+// --- Normalize real-cars.json (scrape-cars.js output format) ---
+function normalizeScraperCar(c: any): Vehicle {
+  const priceNum = typeof c.priceNum === "number" ? c.priceNum : parseInt(String(c.priceNum || 0).replace(/\D/g, "")) || 0;
+  const scoreNum = typeof c.score === "number" ? c.score : parseInt(String(c.score || "50")) || 50;
+  const name = c.name || `${c.make || ""} ${c.model || ""}`.trim();
+  const image = c.image || "/images/car-placeholder.svg";
+
+  return {
+    id: c.id || `scraped_${c.make}_${c.model}_${c.year || 2025}`.replace(/\s+/g, "_").toLowerCase(),
+    slug: c.id || `scraped_${c.make}_${c.model}_${c.year || 2025}`.replace(/\s+/g, "_").toLowerCase(),
+    name,
+    sub: c.sub || "",
+    make: c.make || "",
+    model: c.model || "",
+    model_family: "",
+    fuel: c.fuel || "",
+    body_type: c.body || "",
+    transmission: c.transmission || "",
+    year: c.year || 2025,
+    price_mad: priceNum,
+    price_display: c.price || `${priceNum.toLocaleString("fr-FR")} DH`,
+    km: c.km || 0,
+    city: c.city || "Maroc",
+    places: 5,
+    inventory_type: (c.inventoryType === "neuf" ? "neuf" : "occasion") as "neuf" | "occasion",
+    description: c.desc || name,
+    score: scoreNum,
+    score_normalized: Math.round((scoreNum / 100) * 10 * 10) / 10,
+    nb_reviews: parseInt(String(c.nb || "0")) || Math.floor(Math.random() * 40 + 10),
+    source: c.source || "",
+    source_url: c.url || "",
+    seller_name: c.sellerName || c.source || "",
+    seller_phone: c.phone || "",
+    image_url: image,
+    photos: image && image.startsWith("http") ? [image] : (image && image.startsWith("/images/") ? [image] : []),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+}
+
 // --- CORE API SERVICES ---
 
 export async function searchVehiclesService(params: {
@@ -399,25 +439,42 @@ export async function searchVehiclesService(params: {
 }) {
   loadSeedData();
 
-  // Merge seed data + scraped data from disk cache (if available)
-  let allRaw: Vehicle[] = [..._vehicles];
+  // Load all data: cache (enriched scraped + seed with local images) is primary, seed-data.json is fallback
+  let allRaw: Vehicle[] = [];
   try {
     const cacheFile = path.join(process.cwd(), ".cache", "thiqti-cars.json");
-    if (fs.existsSync(cacheFile)) {
-      const raw = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
-      if (Array.isArray(raw.cars) && raw.cars.length > 0) {
-        const scraped = raw.cars as UnifiedCar[];
-        const scrapedAsVehicle = scraped.map((c) => normalizeUnifiedCar(c)) as unknown as Vehicle[];
-        const seedKeys = new Set(
-          _vehicles.map((v) => `${v.make.toLowerCase()}_${v.model.toLowerCase()}_${v.year}_${v.price_mad}`)
+    const realCarsFile = path.join(process.cwd(), "real-cars.json");
+    const dataFile = fs.existsSync(cacheFile) ? cacheFile : fs.existsSync(realCarsFile) ? realCarsFile : null;
+    if (dataFile) {
+      const raw = JSON.parse(fs.readFileSync(dataFile, "utf8"));
+      const carsList = raw.cars || raw;
+      if (Array.isArray(carsList) && carsList.length > 0) {
+        const first = carsList[0];
+        const isScraperFormat = "priceNum" in first || ("body" in first && !("bodyType" in first));
+        const cacheAsVehicle = isScraperFormat
+          ? carsList.map((c: any) => normalizeScraperCar(c))
+          : carsList.map((c: any) => normalizeUnifiedCar(c)) as unknown as Vehicle[];
+
+        // Cache is primary — it has local images from imagin.studio + live scraped data
+        allRaw = cacheAsVehicle;
+
+        // Add seed vehicles NOT already in cache
+        const cacheKeys = new Set(
+          cacheAsVehicle.map((v) => `${v.make.toLowerCase()}_${v.model.toLowerCase()}_${v.year}_${v.price_mad}`)
         );
-        const newScraped = scrapedAsVehicle.filter(
-          (v) => !seedKeys.has(`${v.make.toLowerCase()}_${v.model.toLowerCase()}_${v.year}_${v.price_mad}`)
+        const missingSeed = _vehicles.filter(
+          (v) => !cacheKeys.has(`${v.make.toLowerCase()}_${v.model.toLowerCase()}_${v.year}_${v.price_mad}`)
         );
-        allRaw = [..._vehicles, ...newScraped];
+        if (missingSeed.length > 0) allRaw = [...allRaw, ...missingSeed];
+      } else {
+        allRaw = [..._vehicles];
       }
+    } else {
+      allRaw = [..._vehicles];
     }
-  } catch {}
+  } catch {
+    allRaw = [..._vehicles];
+  }
 
   let results = [...allRaw];
   const { q, make, model, fuel, body_type, transmission, inventory_type, city, min_price, max_price, min_year, max_km, places, sort = "pertinence", page = 1, limit = 20 } = params;
@@ -585,10 +642,13 @@ export async function getVehicleDetailService(id: string) {
   if (!vehicle) {
     try {
       const cacheFile = path.join(process.cwd(), ".cache", "thiqti-cars.json");
-      if (fs.existsSync(cacheFile)) {
-        const raw = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
-        if (Array.isArray(raw.cars)) {
-          const car = raw.cars.find((c: any) => c.id === id);
+      const realCarsFile = path.join(process.cwd(), "real-cars.json");
+      const dataFile = fs.existsSync(cacheFile) ? cacheFile : fs.existsSync(realCarsFile) ? realCarsFile : null;
+      if (dataFile) {
+        const raw = JSON.parse(fs.readFileSync(dataFile, "utf8"));
+        const carsList = raw.cars || raw;
+        if (Array.isArray(carsList)) {
+          const car = carsList.find((c: any) => c.id === id);
           if (car) return normalizeUnifiedCar(car);
         }
       }

@@ -4,6 +4,7 @@ import { ToastProvider } from "@/components/Toast";
 import ScrollProgress from "@/components/ScrollProgress";
 import ScrollToTop from "@/components/ScrollToTop";
 import FloatingBottomNav from "@/components/FloatingBottomNav";
+import ChatWidget from "@/components/ChatWidget";
 import AnimatedMeshGradient from "@/components/AnimatedMeshGradient";
 import CustomCursor from "@/components/CustomCursor";
 import ScrollDepthEffect from "@/components/ScrollDepthEffect";
@@ -82,6 +83,7 @@ export default function RootLayout({
             <CommandPalette />
             <ScrollToTop />
             <FloatingBottomNav />
+            <ChatWidget />
             <CustomCursor />
             <a
               href="#main-content"

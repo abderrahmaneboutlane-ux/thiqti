@@ -79,6 +79,10 @@ export default function CarImage({ src, sources = [], alt, make, model, bodyType
         list.push(s);
       }
     }
+    const placeholder = "/images/car-placeholder.svg";
+    if (!list.includes(placeholder)) {
+      list.push(placeholder);
+    }
     if (!list.includes(fallbackHd)) {
       list.push(fallbackHd);
     }

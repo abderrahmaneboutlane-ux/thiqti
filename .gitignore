@@ -51,4 +51,9 @@ venv/
 
 # Downloaded scraped photos (regenerate with: npx tsx scripts/download-photos.ts)
 apps/web/public/images/vehicles/
+apps/web/public/images/cars/
 apps/web/.cache/
+
+# Temp files
+apps/web/remote-urls.json
+apps/screenshot-*.png

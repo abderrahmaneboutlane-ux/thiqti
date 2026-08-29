@@ -5,9 +5,133 @@
 const fs = require('fs');
 const path = require('path');
 const OUTPUT = path.join(__dirname, 'real-cars.json');
+const IMAGES_DIR = path.join(__dirname, 'apps', 'web', 'public', 'images', 'cars');
 const TIMEOUT = 25000;
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function slugify(text) {
+  return text
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+async function downloadImage(imageUrl, make, model) {
+  if (!imageUrl || typeof imageUrl !== 'string') return '/images/car-placeholder.svg';
+  if (imageUrl.startsWith('/images/cars/')) return imageUrl;
+
+  const makeDir = slugify(make || 'unknown');
+  const modelDir = slugify(model || 'unknown');
+  const localDir = path.join(IMAGES_DIR, makeDir, modelDir);
+  const webBase = '/images/cars/' + makeDir + '/' + modelDir + '/main';
+
+  for (const ext of ['jpg', 'webp', 'png', 'gif']) {
+    try {
+      const stat = await fs.promises.stat(path.join(localDir, 'main.' + ext));
+      if (stat.size > 0) {
+        console.log('  [IMAGE] ' + make + ' ' + model + ' -> image locale existante, réutilisation');
+        return webBase + '.' + ext;
+      }
+    } catch {}
+  }
+
+  let absoluteUrl = imageUrl;
+  if (!imageUrl.startsWith('http')) {
+    try {
+      absoluteUrl = new URL(imageUrl, 'https://www.example.com').href;
+    } catch {
+      console.log('  [IMAGE] ' + make + ' ' + model + ' -> URL invalide, utilisation du fallback');
+      return '/images/car-placeholder.svg';
+    }
+  }
+
+  try {
+    const res = await fetch(absoluteUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+      },
+      signal: AbortSignal.timeout(15000),
+      redirect: 'follow',
+    });
+
+    if (!res.ok) {
+      console.log('  [IMAGE] ' + make + ' ' + model + ' -> HTTP ' + res.status + ', utilisation du fallback');
+      return '/images/car-placeholder.svg';
+    }
+
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType && !contentType.startsWith('image/') && !contentType.includes('octet-stream')) {
+      console.log('  [IMAGE] ' + make + ' ' + model + ' -> pas une image (' + contentType + '), utilisation du fallback');
+      return '/images/car-placeholder.svg';
+    }
+
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length < 500) {
+      console.log('  [IMAGE] ' + make + ' ' + model + ' -> fichier trop petit (' + buf.length + ' bytes), utilisation du fallback');
+      return '/images/car-placeholder.svg';
+    }
+
+    const header = buf.slice(0, 4).toString('hex');
+    let ext = 'jpg';
+    if (header.startsWith('89504e47')) ext = 'png';
+    else if (header.startsWith('52494646')) ext = 'webp';
+    else if (header.startsWith('47494638')) ext = 'gif';
+
+    const finalDir = localDir;
+    const finalPath = path.join(finalDir, 'main.' + ext);
+    const finalWebPath = '/images/cars/' + makeDir + '/' + modelDir + '/main.' + ext;
+
+    await fs.promises.mkdir(finalDir, { recursive: true });
+    await fs.promises.writeFile(finalPath, buf);
+    console.log('  [IMAGE] ' + make + ' ' + model + ' -> sauvegardée: ' + finalWebPath);
+    return finalWebPath;
+  } catch (err) {
+    console.log('  [IMAGE] ' + make + ' ' + model + ' -> téléchargement impossible (' + err.message + '), utilisation du fallback');
+    return '/images/car-placeholder.svg';
+  }
+}
+
+async function scrapeModelImage(browser, make, model, pageUrl) {
+  if (!pageUrl) return null;
+  try {
+    const ctx = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      locale: 'fr-MA', viewport: { width: 1920, height: 1080 },
+    });
+    const page = await ctx.newPage();
+    await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: TIMEOUT });
+    await page.waitForTimeout(3000);
+
+    const imageUrl = await page.evaluate((modelName) => {
+      const modelUp = modelName.toUpperCase();
+      let best = null;
+      let bestScore = 0;
+      document.querySelectorAll('img').forEach(img => {
+        const src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy') || '';
+        if (!src || !src.startsWith('http')) return;
+        if (src.includes('logo') || src.includes('icon') || src.includes('favicon') || src.includes('sprite')) return;
+        const w = img.naturalWidth || img.width || parseInt(img.getAttribute('width') || '0');
+        const h = img.naturalHeight || img.height || parseInt(img.getAttribute('height') || '0');
+        const alt = (img.getAttribute('alt') || '').toUpperCase();
+        let score = w * h;
+        if (alt.includes(modelUp.split(' ')[0])) score += 100000;
+        if (w >= 400 && h >= 200) score += 50000;
+        if (src.includes('.png') || src.includes('.jpg') || src.includes('.webp')) score += 10000;
+        if (score > bestScore) { bestScore = score; best = src; }
+      });
+      return best;
+    }, model);
+
+    await ctx.close();
+    return imageUrl || null;
+  } catch (err) {
+    console.log('  [SCRAPE] ' + make + ' ' + model + ' -> erreur: ' + err.message);
+    return null;
+  }
+}
 
 function parseMAD(str) {
   if (!str) return 0;
@@ -63,8 +187,7 @@ function formatCar(c, isNew) {
     img: (c.make + ',' + c.model).toLowerCase(),
     desc: name + ' - ' + (isNew ? 'Neuf' : 'Occasion') + ' - Maroc',
     url: c.url || '',
-    image: c.img || '',
-    images: c.images || [],
+    image: c.img || '/images/car-placeholder.svg',
     city: c.city || 'Maroc',
     km: c.km || 0,
     year: c.year || 2025,
@@ -147,61 +270,6 @@ const BRAND_CARS = [
   { make:'BYD', model:'Han', price:499900, fuel:'Electrique', body:'Berline', year:2025, km:0, trans:'Automatique', url:'https://www.byd.com/en-ma/car/han', img:'', source:'BYD Maroc', inv:'neuf' },
 ];
 
-// === IMAGE SCRAPING from brand homepages ===
-async function scrapeBrandImages(browser, brand, url) {
-  try {
-    const ctx = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      locale: 'fr-MA', viewport: { width: 1920, height: 1080 },
-    });
-    const page = await ctx.newPage();
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT });
-    await page.waitForTimeout(4000);
-
-    const imgs = await page.evaluate(() => {
-      const results = {};
-      document.querySelectorAll('img').forEach(img => {
-        const src = img.getAttribute('src') || img.getAttribute('data-src') || '';
-        const alt = (img.getAttribute('alt') || '').toUpperCase();
-        if (src && src.startsWith('http') && !src.includes('logo') && !src.includes('icon') && !src.includes('favicon') && src.length > 20) {
-          results[alt] = src;
-        }
-      });
-      return results;
-    });
-
-    await ctx.close();
-    console.log('  [' + brand + '] ' + Object.keys(imgs).length + ' images');
-    return imgs;
-  } catch (err) {
-    console.error('  [' + brand + '] image error: ' + err.message);
-    return {};
-  }
-}
-
-function matchImages(cars, allImgs) {
-  for (const car of cars) {
-    if (car.img) continue;
-    const modelUp = car.model.toUpperCase();
-    const makeUp = car.make.toUpperCase();
-    const modelWords = modelUp.split(/\s+/);
-    for (const [alt, src] of Object.entries(allImgs)) {
-      if (alt.includes(modelWords[0]) && (alt.includes(makeUp) || modelWords.length > 1 && alt.includes(modelWords[1]))) {
-        car.img = src;
-        break;
-      }
-    }
-    if (!car.img) {
-      for (const [alt, src] of Object.entries(allImgs)) {
-        if (alt.includes(modelWords[0])) {
-          car.img = src;
-          break;
-        }
-      }
-    }
-  }
-}
-
 // === BMW USED INVENTORY ===
 async function scrapeBMWUsed(browser) {
   console.log('[BMW] Scraping used inventory...');
@@ -258,10 +326,12 @@ async function scrapeBMWUsed(browser) {
       let fullUrl = c.url;
       if (fullUrl && !fullUrl.startsWith('http')) fullUrl = 'https://www.bmwpeabody.com' + fullUrl;
 
+      const localImg = await downloadImage(c.img, 'BMW', modelClean);
+
       listings.push({
         make: 'BMW', model: modelClean, price: price || 350000,
         fuel: 'Essence', body: 'SUV', year: year, km: Math.floor(Math.random() * 50000 + 5000),
-        trans: 'Automatique', url: fullUrl, img: c.img,
+        trans: 'Automatique', url: fullUrl, img: localImg,
         source: 'BMW Peabody', inv: 'occasion', city: 'Maroc',
         sellerName: 'BMW Peabody', nb: String(Math.floor(Math.random() * 20 + 5)),
       });
@@ -331,10 +401,12 @@ async function scrapeNissanUsed(browser) {
       let fullUrl = c.url;
       if (fullUrl && !fullUrl.startsWith('http')) fullUrl = 'https://www.marlboronissan.com' + fullUrl;
 
+      const localImg = await downloadImage(c.img, 'Nissan', modelClean);
+
       listings.push({
         make: 'Nissan', model: modelClean, price: price,
         fuel: 'Essence', body: 'SUV', year: year, km: Math.floor(Math.random() * 60000 + 10000),
-        trans: 'Automatique', url: fullUrl, img: c.img,
+        trans: 'Automatique', url: fullUrl, img: localImg,
         source: 'Marlboro Nissan', inv: 'occasion', city: 'Maroc',
         sellerName: 'Marlboro Nissan', nb: String(Math.floor(Math.random() * 20 + 5)),
       });
@@ -361,29 +433,36 @@ async function main() {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
-  // Phase 1: Scrape images from brand homepages
-  console.log('Phase 1: Scraping brand site images...');
-  const [daciaI, renaultI, opelI, vwI, mbI, mgI, bydI, peugeotI] = await Promise.all([
-    scrapeBrandImages(browser, 'Dacia', 'https://www.dacia.ma/gamme/'),
-    scrapeBrandImages(browser, 'Renault', 'https://www.renault.ma/'),
-    scrapeBrandImages(browser, 'Opel', 'https://www.opel.ma/fr/'),
-    scrapeBrandImages(browser, 'VW', 'https://www.volkswagen.ma/fr.html'),
-    scrapeBrandImages(browser, 'Mercedes', 'https://www.mercedes-benz.ma/'),
-    scrapeBrandImages(browser, 'MG', 'https://www.mg-maroc.com/'),
-    scrapeBrandImages(browser, 'BYD', 'https://www.byd.com/en-ma'),
-    scrapeBrandImages(browser, 'Peugeot', 'https://www.peugeot.ma/'),
-  ]);
-  const allImgs = Object.assign({}, daciaI, renaultI, opelI, vwI, mbI, mgI, bydI, peugeotI);
-  console.log('  Total images collected: ' + Object.keys(allImgs).length);
+  // Phase 1: Download images for brand cars
+  console.log('Phase 1: Downloading brand car images...');
+  await fs.promises.mkdir(IMAGES_DIR, { recursive: true });
 
-  // Phase 2: Match images to brand cars
-  console.log('\nPhase 2: Matching images to cars...');
-  matchImages(BRAND_CARS, allImgs);
-  const withImg = BRAND_CARS.filter(c => c.img).length;
+  const BATCH_SIZE = 3;
+  for (let i = 0; i < BRAND_CARS.length; i += BATCH_SIZE) {
+    const batch = BRAND_CARS.slice(i, i + BATCH_SIZE);
+    await Promise.all(batch.map(async (car) => {
+      if (car.img && car.img.startsWith('http')) {
+        car.img = await downloadImage(car.img, car.make, car.model);
+      } else if (car.url) {
+        const scraped = await scrapeModelImage(browser, car.make, car.model, car.url);
+        if (scraped) {
+          car.img = await downloadImage(scraped, car.make, car.model);
+        } else {
+          car.img = '/images/car-placeholder.svg';
+        }
+      } else {
+        car.img = '/images/car-placeholder.svg';
+      }
+    }));
+    const done = Math.min(i + BATCH_SIZE, BRAND_CARS.length);
+    process.stdout.write('\r  Progress: ' + done + '/' + BRAND_CARS.length);
+  }
+  console.log('');
+  const withImg = BRAND_CARS.filter(c => c.img && c.img !== '/images/car-placeholder.svg').length;
   console.log('  ' + withImg + '/' + BRAND_CARS.length + ' cars have images');
 
-  // Phase 3: Scrape used inventory (BMW + Nissan)
-  console.log('\nPhase 3: Scraping used car inventory...');
+  // Phase 2: Scrape used inventory (BMW + Nissan)
+  console.log('\nPhase 2: Scraping used car inventory...');
   const [bmwUsed, nissanUsed] = await Promise.all([
     scrapeBMWUsed(browser),
     scrapeNissanUsed(browser),
@@ -391,8 +470,8 @@ async function main() {
 
   await browser.close();
 
-  // Phase 4: Format all output
-  console.log('\nPhase 4: Formatting output...');
+  // Phase 3: Format all output
+  console.log('\nPhase 3: Formatting output...');
   const output = [];
 
   // Format brand new cars
@@ -427,7 +506,7 @@ async function main() {
   console.log('  DONE: ' + deduped.length + ' cars -> real-cars.json');
   console.log('  Neuf (New): ' + newCount);
   console.log('  Occasion (Used): ' + usedCount);
-  console.log('  With images: ' + deduped.filter(c => c.image).length);
+  console.log('  With images: ' + deduped.filter(c => c.image && c.image !== '/images/car-placeholder.svg').length);
   console.log('  With URLs: ' + deduped.filter(c => c.url).length);
   console.log('  Brands: Dacia, Renault, Opel, VW, Mercedes, Peugeot, MG, BYD');
   console.log('  Used dealers: BMW Peabody, Marlboro Nissan');
